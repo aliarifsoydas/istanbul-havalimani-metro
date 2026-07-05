@@ -11,7 +11,7 @@
 // >>> YAYINLAMADAN ÖNCE: SITE değerini kendi alan adınla değiştir. <<<
 // ============================================================================
 
-const SITE = "https://istanbul-havalimani-metro.github.io"; // yayın adresi
+const SITE = "https://istanbul-havalimani-metro.pages.dev"; // yayın adresi (Cloudflare Pages)
 
 // --- İstasyonlar (Terminal 2 kapalı olduğu için listede yok) --------------
 // tH: Halkalı yönünde Gayrettepe'den itibaren dakika (son tren)
