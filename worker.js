@@ -4,7 +4,7 @@
 //
 // Veri kaynakları:
 //  - Süreler: TCDD "son tren" tarifesi (istasyon geçiş saatlerinden türetilmiş)
-//  - Ücretler: İBB/UKOME 16.02.2026 tarifesi (resmî, 7 kademe)
+//  - Ücretler: İBB/UKOME 20.07.2026 tarifesi (resmî, 7 kademe)
 //  - İstasyon/aktarma/ilçe: TCDD & Vikipedi
 // Bu araç gayriresmîdir; ücret ve saatler değişebilir.
 //
@@ -34,15 +34,16 @@ const S = [
   { name: "Halkalı", ilce: "Küçükçekmece", near: "Halkalı Marmaray / YHT Garı", km: 69.11, tH: 64, tG: 0, fH: "06:15", lH: "00:59", fG: "06:00", lG: "23:44", akt: "Marmaray, M1, YHT" },
 ];
 
-// --- Ücret kademeleri (İBB/UKOME 16.02.2026; istasyon sayısı = uçtan uca dahil)
+// --- Ücret kademeleri (İBB/UKOME 20.07.2026; istasyon sayısı = uçtan uca dahil)
+// 20.07.2026 zammı: tüm kalemlere düz %10 (önceki 16.02.2026 tarifesi üzerinden)
 const FARE = [
-  { maxN: 3, tam: 34.00, ogr: 16.48, sos: 24.16 },
-  { maxN: 6, tam: 38.49, ogr: 18.91, sos: 27.68 },
-  { maxN: 8, tam: 43.54, ogr: 21.26, sos: 31.05 },
-  { maxN: 10, tam: 48.85, ogr: 23.61, sos: 34.43 },
-  { maxN: 12, tam: 54.45, ogr: 25.95, sos: 37.80 },
-  { maxN: 14, tam: 60.35, ogr: 28.30, sos: 41.18 },
-  { maxN: 16, tam: 66.54, ogr: 30.65, sos: 44.55 },
+  { maxN: 3, tam: 37.40, ogr: 18.13, sos: 26.58 },
+  { maxN: 6, tam: 42.34, ogr: 20.80, sos: 30.45 },
+  { maxN: 8, tam: 47.89, ogr: 23.39, sos: 34.16 },
+  { maxN: 10, tam: 53.74, ogr: 25.97, sos: 37.87 },
+  { maxN: 12, tam: 59.90, ogr: 28.55, sos: 41.58 },
+  { maxN: 14, tam: 66.39, ogr: 31.13, sos: 45.30 },
+  { maxN: 16, tam: 73.19, ogr: 33.72, sos: 49.01 },
 ];
 const FREE = [10, 11, 12, 13, 14]; // 31 Tem 2026'ya kadar biniş ücretsiz istasyonlar
 
@@ -61,11 +62,11 @@ const POPULAR = [[0, 6], [14, 6], [1, 6], [0, 14]].map(([i, j]) => {
 // --- SSS (hem görünür HTML hem JSON-LD için tek kaynak) --------------------
 const FAQ = [
   { q: "Gayrettepe'den İstanbul Havalimanı'na metro kaç dakika?",
-    a: "M11 ile Gayrettepe'den İstanbul Havalimanı'na yaklaşık 30 dakikada, 7 istasyonda ulaşılır. Tam ücret 43,54 TL'dir." },
+    a: "M11 ile Gayrettepe'den İstanbul Havalimanı'na yaklaşık 30 dakikada, 7 istasyonda ulaşılır. Tam ücret 47,89 TL'dir." },
   { q: "Halkalı'dan İstanbul Havalimanı'na kaç dakika?",
-    a: "Halkalı'dan İstanbul Havalimanı'na M11 ile yaklaşık 33 dakika sürer ve 9 istasyon geçilir. Tam ücret 48,85 TL'dir." },
+    a: "Halkalı'dan İstanbul Havalimanı'na M11 ile yaklaşık 33 dakika sürer ve 9 istasyon geçilir. Tam ücret 53,74 TL'dir." },
   { q: "M11 metro ücreti ne kadar? (2026)",
-    a: "16 Şubat 2026 tarifesine göre ücret istasyon sayısına göre 34,00 TL ile 66,54 TL (tam) arasında değişir. Girişte en yüksek ücret alınır, çıkışta gidilmeyen mesafe iade edilir." },
+    a: "20 Temmuz 2026 tarifesine göre ücret istasyon sayısına göre 37,40 TL ile 73,19 TL (tam) arasında değişir. Girişte en yüksek ücret alınır, çıkışta gidilmeyen mesafe iade edilir." },
   { q: "M11 kaç dakikada bir geçiyor?",
     a: "Gündüz seferleri yaklaşık 15-20 dakikada birdir. Cuma ve Cumartesi geceleri 00:01-05:30 arasında 30 dakikada bir ek sefer yapılır; gece seferlerinde çift ücret uygulanır." },
   { q: "M11 ilk ve son sefer saatleri nedir?",
@@ -390,7 +391,7 @@ const HTML = `<!DOCTYPE html>
     <div class="stats">
       <div class="stat"><span class="k">Mesafe</span><span class="v"><b id="dist">69,1</b> km</span></div>
       <div class="stat"><span class="k">İstasyon</span><span class="v"><b id="stops">15</b></span></div>
-      <div class="stat fare"><span class="k">Ücret · tam</span><span class="v"><b id="fare">₺66,54</b></span><span class="sub" id="faresub"></span></div>
+      <div class="stat fare"><span class="k">Ücret · tam</span><span class="v"><b id="fare">₺73,19</b></span><span class="sub" id="faresub"></span></div>
     </div>
     <p class="note" id="note"></p>
   </div>
@@ -418,7 +419,7 @@ const HTML = `<!DOCTYPE html>
     </table>
   </div>
 
-  <h2>Ücret tarifesi · 16 Şubat 2026</h2>
+  <h2>Ücret tarifesi · 20 Temmuz 2026</h2>
   <p class="sub">İstasyon sayısına göre resmî İBB/UKOME kademeleri.</p>
   <div class="tablewrap">
     <table>
@@ -433,7 +434,7 @@ const HTML = `<!DOCTYPE html>
   ${faqHTML}
 
   <p class="foot">
-    <b>Gayriresmî araçtır.</b> Süreler TCDD son tren tarifesine dayanır ve gündüz seferleriyle 1–2 dk oynayabilir. Ücretler İBB/UKOME 16.02.2026 tarifesindendir; değişebilir. Yolculuk öncesi
+    <b>Gayriresmî araçtır.</b> Süreler TCDD son tren tarifesine dayanır ve gündüz seferleriyle 1–2 dk oynayabilir. Ücretler İBB/UKOME 20.07.2026 tarifesindendir; değişebilir. Yolculuk öncesi
     <a href="https://www.tcddtasimacilik.gov.tr" rel="noopener">tcddtasimacilik.gov.tr</a> ve
     <a href="https://tuhim.ibb.gov.tr" rel="noopener">İBB ücret tarifesi</a> sayfalarını kontrol edin.
   </p>
