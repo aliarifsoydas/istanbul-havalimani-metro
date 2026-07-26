@@ -209,9 +209,13 @@
 
   @media (max-width:560px){
     .picker{grid-template-columns:1fr; gap:12px}
-    .swap{width:100%; height:40px; transform:rotate(90deg)}
-    .swap:active{transform:rotate(270deg) scale(.92)}
     .field.to{order:3}
+    /* Alanlar alt alta gelince buton kutusu DÖNDÜRÜLMEZ: döndürülen eleman
+       layout'ta eski yerini koruduğu için tam genişlikte bir bar 90° dönünce
+       komşu select'lerin üstüne taşıyordu. Yerine ortalanmış kompakt daire —
+       ikondaki yukarı/aşağı oklar zaten dikey dizilime uyuyor. */
+    .swap{order:2; justify-self:center; align-self:center;
+      width:44px; height:44px; border-radius:50%; transform:none}
   }
   @media (prefers-reduced-motion:reduce){
     *{animation:none !important; transition:none !important}
