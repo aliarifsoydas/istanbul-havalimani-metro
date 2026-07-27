@@ -16,27 +16,28 @@ const SITE = "https://istanbul-havalimani-metro.pages.dev"; // yayın adresi (Cl
 // --- İstasyonlar (Terminal 2 kapalı olduğu için listede yok) --------------
 // tH: Halkalı yönünde Gayrettepe'den itibaren dakika (son tren)
 // tG: Gayrettepe yönünde Halkalı'dan itibaren dakika (son tren)
-// lH/lG: son tren saatleri — kaynak veri (23:55 Gayrettepe / 23:44 Halkalı + süre).
-// fH/fG: ilk tren saatleri — TÜRETİLMİŞ. Önceki değerler iç tutarsızdı (12/15
-//   istasyon süreyle uyuşmuyor, hat boyunca geriye gidiyordu). TCDD per-istasyon
-//   ilk kalkış verisi yayımlamadığı için 06:00 başlangıcından (TCDD işletme
-//   saatleri) süre eklenerek üretildi — son tren sütunuyla aynı yöntem.
-const S = [
-  { name: "Gayrettepe", ilce: "Şişli", near: "Zorlu Center · Zincirlikuyu", km: 0.00, tH: 0, tG: 63, fH: "06:00", lH: "23:55", fG: "07:03", lG: "00:47", akt: "M2, Metrobüs" },
-  { name: "Kâğıthane", ilce: "Kâğıthane", near: "Kâğıthane Deresi", km: 3.94, tH: 4, tG: 60, fH: "06:04", lH: "23:59", fG: "07:00", lG: "00:44", akt: "M7" },
-  { name: "Hasdal", ilce: "Eyüpsultan", near: "Çapa Tıp Fak. Hastanesi", km: 9.43, tH: 9, tG: 55, fH: "06:09", lH: "00:04", fG: "06:55", lG: "00:39", akt: "—" },
-  { name: "Kemerburgaz", ilce: "Eyüpsultan", near: "Kemerburgaz Kent Ormanı", km: 15.03, tH: 13, tG: 50, fH: "06:13", lH: "00:08", fG: "06:50", lG: "00:34", akt: "—" },
-  { name: "Göktürk", ilce: "Eyüpsultan", near: "Göktürk merkez", km: 18.16, tH: 17, tG: 47, fH: "06:17", lH: "00:12", fG: "06:47", lG: "00:31", akt: "—" },
-  { name: "İhsaniye", ilce: "Eyüpsultan", near: "İhsaniye", km: 28.11, tH: 24, tG: 39, fH: "06:24", lH: "00:19", fG: "06:39", lG: "00:23", akt: "—" },
-  { name: "İstanbul Havalimanı", ilce: "Arnavutköy", near: "İGA Terminal", km: 34.10, tH: 30, tG: 33, fH: "06:30", lH: "00:25", fG: "06:33", lG: "00:17", akt: "YHT (yakında)" },
-  { name: "Kargo Terminali", ilce: "Arnavutköy", near: "THY Kargo / İGA", km: 36.61, tH: 34, tG: 31, fH: "06:34", lH: "00:29", fG: "06:31", lG: "00:15", akt: "—" },
-  { name: "Taşoluk", ilce: "Arnavutköy", near: "Depo sahası", km: 43.01, tH: 39, tG: 25, fH: "06:39", lH: "00:34", fG: "06:25", lG: "00:09", akt: "—" },
-  { name: "Arnavutköy Hastane", ilce: "Arnavutköy", near: "Arnavutköy Devlet Hastanesi", km: 47.34, tH: 43, tG: 21, fH: "06:43", lH: "00:38", fG: "06:21", lG: "00:05", akt: "—" },
-  { name: "İbn Haldun Üniversitesi", ilce: "Başakşehir", near: "İbn Haldun Üniversitesi", km: 54.24, tH: 49, tG: 15, fH: "06:49", lH: "00:44", fG: "06:15", lG: "23:59", akt: "—" },
-  { name: "Kayaşehir", ilce: "Başakşehir", near: "Başakşehir Millet Bahçesi", km: 58.05, tH: 52, tG: 12, fH: "06:52", lH: "00:47", fG: "06:12", lG: "23:56", akt: "M3" },
-  { name: "Olimpiyatköy", ilce: "Başakşehir", near: "Atatürk Olimpiyat Stadyumu", km: 62.48, tH: 57, tG: 7, fH: "06:57", lH: "00:52", fG: "06:07", lG: "23:51", akt: "M9" },
-  { name: "Halkalı Stadı", ilce: "Küçükçekmece", near: "İBB Halkalı Futbol Stadı", km: 64.95, tH: 60, tG: 4, fH: "07:00", lH: "00:55", fG: "06:04", lG: "23:48", akt: "M7 (Atakent)" },
-  { name: "Halkalı", ilce: "Küçükçekmece", near: "Halkalı Marmaray / YHT Garı", km: 69.11, tH: 64, tG: 0, fH: "07:04", lH: "00:59", fG: "06:00", lG: "23:44", akt: "Marmaray, M1, YHT" },
+// lH/lG: son tren — uçtan uca giden TEK trenin geçiş saatleri, süreyle birebir.
+// fH/fG: ilk tren — her istasyonun KENDİ ilk treni; hepsi aynı trene ait değil
+//   (bazıları Taşoluk deposundan/hat ortasından kalkar). Bu yüzden sütun hat
+//   boyunca düz artmaz; kopuş noktaları arasındaki bloklar kendi içinde
+//   süreyle tutarlıdır (fH 11/14, fG 10/14 ardışık aralık). Düz artan bir
+//   diziye "düzeltilmemeli" — gerçek veri budur.
+const M11_STATIONS = [
+  { name: "Gayrettepe", ilce: "Şişli", near: "Zorlu Center · Zincirlikuyu", km: 0.00, tH: 0, tG: 63, fH: "05:55", lH: "23:55", fG: "06:03", lG: "00:47", akt: "M2, Metrobüs" },
+  { name: "Kâğıthane", ilce: "Kâğıthane", near: "Kâğıthane Deresi", km: 3.94, tH: 4, tG: 60, fH: "05:59", lH: "23:59", fG: "06:00", lG: "00:44", akt: "M7" },
+  { name: "Hasdal", ilce: "Eyüpsultan", near: "Çapa Tıp Fak. Hastanesi", km: 9.43, tH: 9, tG: 55, fH: "06:04", lH: "00:04", fG: "06:10", lG: "00:39", akt: "—" },
+  { name: "Kemerburgaz", ilce: "Eyüpsultan", near: "Kemerburgaz Kent Ormanı", km: 15.03, tH: 13, tG: 50, fH: "06:09", lH: "00:08", fG: "06:05", lG: "00:34", akt: "—" },
+  { name: "Göktürk", ilce: "Eyüpsultan", near: "Göktürk merkez", km: 18.16, tH: 17, tG: 47, fH: "05:57", lH: "00:12", fG: "06:02", lG: "00:31", akt: "—" },
+  { name: "İhsaniye", ilce: "Eyüpsultan", near: "İhsaniye", km: 28.11, tH: 24, tG: 39, fH: "06:05", lH: "00:19", fG: "06:09", lG: "00:23", akt: "—" },
+  { name: "İstanbul Havalimanı", ilce: "Arnavutköy", near: "İGA Terminal", km: 34.10, tH: 30, tG: 33, fH: "06:11", lH: "00:25", fG: "06:03", lG: "00:17", akt: "YHT (yakında)" },
+  { name: "Kargo Terminali", ilce: "Arnavutköy", near: "THY Kargo / İGA", km: 36.61, tH: 34, tG: 31, fH: "06:14", lH: "00:29", fG: "06:00", lG: "00:15", akt: "—" },
+  { name: "Taşoluk", ilce: "Arnavutköy", near: "Depo sahası", km: 43.01, tH: 39, tG: 25, fH: "06:04", lH: "00:34", fG: "06:10", lG: "00:09", akt: "—" },
+  { name: "Arnavutköy Hastane", ilce: "Arnavutköy", near: "Arnavutköy Devlet Hastanesi", km: 47.34, tH: 43, tG: 21, fH: "06:08", lH: "00:38", fG: "06:06", lG: "00:05", akt: "—" },
+  { name: "İbn Haldun Üniversitesi", ilce: "Başakşehir", near: "İbn Haldun Üniversitesi", km: 54.24, tH: 49, tG: 15, fH: "06:14", lH: "00:44", fG: "06:00", lG: "23:59", akt: "—" },
+  { name: "Kayaşehir", ilce: "Başakşehir", near: "Başakşehir Millet Bahçesi", km: 58.05, tH: 52, tG: 12, fH: "06:03", lH: "00:47", fG: "05:56", lG: "23:56", akt: "M3" },
+  { name: "Olimpiyatköy", ilce: "Başakşehir", near: "Atatürk Olimpiyat Stadyumu", km: 62.48, tH: 57, tG: 7, fH: "06:07", lH: "00:52", fG: "06:07", lG: "23:51", akt: "M9" },
+  { name: "Halkalı Stadı", ilce: "Küçükçekmece", near: "İBB Halkalı Futbol Stadı", km: 64.95, tH: 60, tG: 4, fH: "06:10", lH: "00:55", fG: "06:04", lG: "23:48", akt: "M7 (Atakent)" },
+  { name: "Halkalı", ilce: "Küçükçekmece", near: "Halkalı Marmaray / YHT Garı", km: 69.11, tH: 64, tG: 0, fH: "06:15", lH: "00:59", fG: "06:00", lG: "23:44", akt: "Marmaray, M1, YHT" },
 ];
 
 // --- Ücret kademeleri (İBB/UKOME 20.07.2026) -------------------------------
@@ -45,7 +46,7 @@ const S = [
 // yolculuk 14 duraktır ("Tam Parkur Taşıma Ücreti"). Doğrulama: UKOME'nin
 // her istasyondan giriş ücreti tablosu bu modelle 15/15 tutuyor (dahil
 // sayımla yalnızca 7/15). 20.07.2026 zammı: tüm kalemlere düz %10.
-const FARE = [
+const M11_FARE = [
   { maxN: 3, tam: 37.40, ogr: 18.13, sos: 26.58 },
   { maxN: 6, tam: 42.34, ogr: 20.80, sos: 30.45 },
   { maxN: 8, tam: 47.89, ogr: 23.39, sos: 34.16 },
@@ -53,22 +54,74 @@ const FARE = [
   { maxN: 12, tam: 59.90, ogr: 28.55, sos: 41.58 },
   { maxN: 14, tam: 66.39, ogr: 31.13, sos: 45.30 },
 ];
-const FREE = [10, 11, 12, 13, 14]; // 31 Tem 2026'ya kadar biniş ücretsiz istasyonlar
+const M11_FREE = [10, 11, 12, 13, 14]; // 31 Tem 2026'ya kadar biniş ücretsiz istasyonlar
 
-// --- Yardımcılar (sunucu tarafı: SEO içerikleri önceden hesaplamak için) ----
-function lira(v) { return "₺" + v.toFixed(2).replace(".", ","); }
-function fareFor(n) { for (const f of FARE) if (n <= f.maxN) return f; return FARE[FARE.length - 1]; }
-function tripTime(i, j) { return j > i ? (S[j].tH - S[i].tH) : (S[j].tG - S[i].tG); }
-function tripDir(i, j) { return j > i ? "Halkalı yönü" : "Gayrettepe yönü"; }
+// --- Marmaray B1 (Halkalı – Gebze) ----------------------------------------
+// tH: Gebze yönünde Halkalı'dan itibaren dakika · tG: Halkalı yönünde Gebze'den
+// Süreler son tren sütunundan türetildi (Halkalı 23:28 / Gebze 23:20 kalkışlı
+// uçtan uca tren). Uçtan uca 107/108 dk — Vikipedi'nin 108 dk'sıyla uyumlu.
+// fH/fG yine her istasyonun KENDİ ilk treni (ara depolardan kalkışlar var).
+// km: istasyon koordinatlarından kümülatif kuş uçuşu, resmî 75,771 km'ye
+// ölçeklendi (ham 71,42 km → ×1,0609); ±birkaç yüz metre yaklaşıktır.
+const B1_STATIONS = [
+  { name: "Halkalı", ilce: "Küçükçekmece", near: "M11 · YHT Garı", km: 0.00, tH: 0, tG: 108, fH: "05:58", lH: "23:28", fG: "—", lG: "01:08", akt: "M11, YHT, Bölgesel" },
+  { name: "Mustafa Kemal", ilce: "Küçükçekmece", near: "", km: 1.59, tH: 3, tG: 105, fH: "06:01", lH: "23:31", fG: "06:22", lG: "01:05", akt: "—" },
+  { name: "Küçükçekmece", ilce: "Küçükçekmece", near: "", km: 3.65, tH: 5, tG: 102, fH: "06:03", lH: "23:33", fG: "06:19", lG: "01:02", akt: "Metrobüs" },
+  { name: "Florya", ilce: "Bakırköy", near: "", km: 5.92, tH: 8, tG: 99, fH: "06:06", lH: "23:36", fG: "06:16", lG: "00:59", akt: "—" },
+  { name: "Florya Akvaryum", ilce: "Bakırköy", near: "İstanbul Akvaryum", km: 6.95, tH: 10, tG: 97, fH: "06:08", lH: "23:38", fG: "06:14", lG: "00:57", akt: "—" },
+  { name: "Yeşilköy", ilce: "Bakırköy", near: "", km: 9.51, tH: 13, tG: 94, fH: "06:11", lH: "23:41", fG: "06:11", lG: "00:54", akt: "—" },
+  { name: "Yeşilyurt", ilce: "Bakırköy", near: "", km: 10.64, tH: 15, tG: 92, fH: "06:13", lH: "23:43", fG: "06:09", lG: "00:52", akt: "—" },
+  { name: "Ataköy", ilce: "Bakırköy", near: "", km: 13.08, tH: 18, tG: 89, fH: "06:02", lH: "23:46", fG: "06:06", lG: "00:49", akt: "M9" },
+  { name: "Bakırköy", ilce: "Bakırköy", near: "", km: 14.54, tH: 21, tG: 87, fH: "06:05", lH: "23:49", fG: "06:04", lG: "00:47", akt: "M3, YHT" },
+  { name: "Yenimahalle", ilce: "Zeytinburnu", near: "", km: 15.32, tH: 23, tG: 85, fH: "06:07", lH: "23:51", fG: "06:02", lG: "00:45", akt: "—" },
+  { name: "Zeytinburnu-Fişekhane", ilce: "Zeytinburnu", near: "", km: 17.55, tH: 26, tG: 82, fH: "06:01", lH: "23:54", fG: "06:05", lG: "00:42", akt: "—" },
+  { name: "Kazlıçeşme", ilce: "Zeytinburnu", near: "", km: 18.86, tH: 28, tG: 80, fH: "06:03", lH: "23:56", fG: "06:03", lG: "00:40", akt: "—" },
+  { name: "Yenikapı", ilce: "Fatih", near: "Aktarma merkezi", km: 22.27, tH: 32, tG: 76, fH: "06:00", lH: "00:00", fG: "05:59", lG: "00:36", akt: "M1, M2, T1, İDO" },
+  { name: "Sirkeci", ilce: "Fatih", near: "Sirkeci Garı", km: 24.74, tH: 35, tG: 73, fH: "06:03", lH: "00:03", fG: "06:03", lG: "00:33", akt: "T1, Vapur" },
+  { name: "Üsküdar", ilce: "Üsküdar", near: "Üsküdar İskelesi", km: 28.35, tH: 39, tG: 69, fH: "06:00", lH: "00:07", fG: "05:59", lG: "00:29", akt: "M5, Vapur" },
+  { name: "Ayrılık Çeşmesi", ilce: "Kadıköy", near: "", km: 31.68, tH: 43, tG: 65, fH: "06:04", lH: "00:11", fG: "06:03", lG: "00:25", akt: "M4" },
+  { name: "Söğütlüçeşme", ilce: "Kadıköy", near: "Kadıköy", km: 32.96, tH: 46, tG: 62, fH: "06:00", lH: "00:14", fG: "06:00", lG: "00:22", akt: "Metrobüs, YHT" },
+  { name: "Feneryolu", ilce: "Kadıköy", near: "", km: 34.70, tH: 48, tG: 59, fH: "06:02", lH: "00:16", fG: "06:04", lG: "00:19", akt: "—" },
+  { name: "Göztepe", ilce: "Kadıköy", near: "", km: 35.94, tH: 50, tG: 57, fH: "06:04", lH: "00:18", fG: "06:02", lG: "00:17", akt: "M12" },
+  { name: "Erenköy", ilce: "Kadıköy", near: "", km: 37.46, tH: 52, tG: 55, fH: "06:06", lH: "00:20", fG: "06:00", lG: "00:15", akt: "—" },
+  { name: "Suadiye", ilce: "Kadıköy", near: "", km: 38.95, tH: 55, tG: 52, fH: "06:01", lH: "00:23", fG: "06:05", lG: "00:12", akt: "—" },
+  { name: "Bostancı", ilce: "Kadıköy", near: "", km: 40.10, tH: 57, tG: 50, fH: "06:03", lH: "00:25", fG: "06:03", lG: "00:10", akt: "M4, Vapur" },
+  { name: "Küçükyalı", ilce: "Maltepe", near: "", km: 41.58, tH: 60, tG: 47, fH: "06:06", lH: "00:28", fG: "06:00", lG: "00:07", akt: "—" },
+  { name: "İdealtepe", ilce: "Maltepe", near: "", km: 42.75, tH: 62, tG: 45, fH: "06:00", lH: "00:30", fG: "06:06", lG: "00:05", akt: "—" },
+  { name: "Süreyya Plajı", ilce: "Maltepe", near: "", km: 44.33, tH: 64, tG: 43, fH: "06:02", lH: "00:32", fG: "06:04", lG: "00:03", akt: "—" },
+  { name: "Maltepe", ilce: "Maltepe", near: "", km: 45.45, tH: 66, tG: 41, fH: "06:04", lH: "00:34", fG: "06:02", lG: "00:01", akt: "Vapur" },
+  { name: "Cevizli", ilce: "Kartal", near: "", km: 47.75, tH: 69, tG: 38, fH: "06:00", lH: "00:37", fG: "06:06", lG: "23:58", akt: "—" },
+  { name: "Atalar", ilce: "Kartal", near: "", km: 49.63, tH: 71, tG: 36, fH: "06:02", lH: "00:39", fG: "06:04", lG: "23:56", akt: "—" },
+  { name: "Başak", ilce: "Kartal", near: "", km: 50.81, tH: 73, tG: 34, fH: "06:04", lH: "00:41", fG: "06:02", lG: "23:54", akt: "—" },
+  { name: "Kartal", ilce: "Kartal", near: "", km: 52.05, tH: 75, tG: 32, fH: "06:06", lH: "00:43", fG: "06:00", lG: "23:52", akt: "M4, İDO" },
+  { name: "Yunus", ilce: "Kartal", near: "", km: 53.83, tH: 78, tG: 29, fH: "06:02", lH: "00:46", fG: "06:05", lG: "23:49", akt: "—" },
+  { name: "Pendik", ilce: "Pendik", near: "", km: 55.79, tH: 81, tG: 26, fH: "06:05", lH: "00:49", fG: "06:02", lG: "23:46", akt: "M4, YHT, İDO" },
+  { name: "Kaynarca", ilce: "Pendik", near: "", km: 58.20, tH: 84, tG: 23, fH: "06:08", lH: "00:52", fG: "06:14", lG: "23:43", akt: "—" },
+  { name: "Tersane", ilce: "Pendik", near: "", km: 60.16, tH: 86, tG: 21, fH: "06:10", lH: "00:54", fG: "06:12", lG: "23:41", akt: "—" },
+  { name: "Güzelyalı", ilce: "Pendik", near: "", km: 61.21, tH: 88, tG: 19, fH: "06:12", lH: "00:56", fG: "06:10", lG: "23:39", akt: "—" },
+  { name: "Aydıntepe", ilce: "Tuzla", near: "", km: 62.23, tH: 90, tG: 17, fH: "06:14", lH: "00:58", fG: "06:08", lG: "23:37", akt: "—" },
+  { name: "İçmeler", ilce: "Tuzla", near: "", km: 63.22, tH: 92, tG: 15, fH: "06:16", lH: "01:00", fG: "06:06", lG: "23:35", akt: "M4" },
+  { name: "Tuzla", ilce: "Tuzla", near: "", km: 65.92, tH: 95, tG: 12, fH: "06:19", lH: "01:03", fG: "06:03", lG: "23:32", akt: "—" },
+  { name: "Çayırova", ilce: "Gebze", near: "", km: 69.13, tH: 98, tG: 8, fH: "06:22", lH: "01:06", fG: "06:13", lG: "23:28", akt: "—" },
+  { name: "GTÜ-Fatih", ilce: "Gebze", near: "Gebze Teknik Üniversitesi", km: 70.65, tH: 101, tG: 6, fH: "06:25", lH: "01:09", fG: "06:11", lG: "23:26", akt: "—" },
+  { name: "Osmangazi", ilce: "Darıca", near: "", km: 72.42, tH: 103, tG: 4, fH: "06:27", lH: "01:11", fG: "06:09", lG: "23:24", akt: "—" },
+  { name: "Darıca", ilce: "Darıca", near: "", km: 73.80, tH: 105, tG: 2, fH: "06:29", lH: "01:13", fG: "06:07", lG: "23:22", akt: "—" },
+  { name: "Gebze", ilce: "Gebze", near: "Gebze merkez", km: 75.77, tH: 107, tG: 0, fH: "—", lH: "01:15", fG: "06:05", lG: "23:20", akt: "YHT, Bölgesel" },
+];
 
-// --- Sık aranan güzergâhlar (SEO) ------------------------------------------
-const POPULAR = [[0, 6], [14, 6], [1, 6], [0, 14]].map(([i, j]) => {
-  const n = Math.abs(i - j);   // gidilen durak sayısı
-  return { i, j, time: tripTime(i, j), n, fare: fareFor(n).tam };
-});
+// Marmaray ücret kademeleri (İBB/UKOME 20.07.2026) — 7 durakta bir kademe.
+// Uçtan uca 42 durak → 36–43 kademesi = ₺82,17. Doğrulama: kaynaktaki 7 örnek
+// güzergâhın 6'sı bu modelle birebir tutuyor (1'inde kaynakta dizgi hatası var).
+const B1_FARE = [
+  { maxN: 7,  tam: 37.40, ogr: 18.13, sos: 26.58 },
+  { maxN: 14, tam: 47.74, ogr: 22.32, sos: 32.92 },
+  { maxN: 21, tam: 55.11, ogr: 26.58, sos: 38.72 },
+  { maxN: 28, tam: 63.56, ogr: 30.23, sos: 45.08 },
+  { maxN: 35, tam: 74.24, ogr: 35.53, sos: 53.02 },
+  { maxN: 43, tam: 82.17, ogr: 37.13, sos: 57.29 },
+];
 
-// --- SSS (hem görünür HTML hem JSON-LD için tek kaynak) --------------------
-const FAQ = [
+const M11_FAQ = [
   { q: "Gayrettepe'den İstanbul Havalimanı'na metro kaç dakika?",
     a: "M11 ile Gayrettepe'den İstanbul Havalimanı'na yaklaşık 30 dakikada, 6 durak sonra ulaşılır. Tam ücret 42,34 TL'dir." },
   { q: "Halkalı'dan İstanbul Havalimanı'na kaç dakika?",
@@ -84,6 +137,74 @@ const FAQ = [
   { q: "M11 hangi hatlara aktarma yapıyor?",
     a: "Gayrettepe'de M2 ve Metrobüs, Kâğıthane'de M7, Kayaşehir'de M3, Olimpiyatköy'de M9, Halkalı'da Marmaray, M1 ve Yüksek Hızlı Tren aktarması yapılabilir." },
 ];
+
+const B1_FAQ = [
+  { q: "Marmaray Halkalı'dan Gebze'ye kaç dakika?",
+    a: "Marmaray ile Halkalı'dan Gebze'ye uçtan uca yaklaşık 107 dakikada, 42 durak geçilerek ulaşılır. Tam ücret 82,17 TL'dir." },
+  { q: "Marmaray ücreti ne kadar? (2026)",
+    a: "20 Temmuz 2026 tarifesine göre ücret gidilen durak sayısına göre 37,40 TL ile 82,17 TL (tam) arasında değişir. Her 7 durakta bir üst kademeye geçilir." },
+  { q: "Marmaray kaç dakikada bir geçiyor?",
+    a: "Halkalı – Gebze uçtan uca seferler 15 dakikada bir, yoğun kesim olan Ataköy – Pendik arası ise 8 dakikada bir yapılır. Kapanış ve hafta sonu gece seferleri 30 dakikada birdir." },
+  { q: "Marmaray ilk ve son sefer saatleri nedir?",
+    a: "Halkalı'dan ilk tren 05:58'de, Gebze'den 06:05'te kalkar. Son tren Halkalı'dan 23:28'de, Gebze'den 23:20'de hareket eder; hafta sonu gece seferleri 01:20'ye kadar sürer." },
+  { q: "Marmaray'da kaç istasyon var?",
+    a: "Halkalı ile Gebze arasındaki 75,8 km'lik hatta 43 istasyon bulunur; 38'i İstanbul'da, 5'i Kocaeli'ndedir." },
+  { q: "Marmaray hangi hatlara aktarma yapıyor?",
+    a: "Yenikapı'da M1, M2 ve T1; Üsküdar'da M5; Ayrılık Çeşmesi, Bostancı, Kartal ve Pendik'te M4; Bakırköy'de M3; Ataköy'de M9; Sirkeci'de T1; Küçükçekmece ve Söğütlüçeşme'de Metrobüs; Halkalı'da M11 ve YHT aktarması yapılabilir." },
+  { q: "Marmaray'dan İstanbul Havalimanı'na nasıl gidilir?",
+    a: "Marmaray ile Halkalı'ya gidip aynı istasyondan M11 metrosuna aktarma yapılır. Halkalı'dan İstanbul Havalimanı'na M11 ile yaklaşık 33 dakika sürer ve tam ücret 47,89 TL'dir." },
+];
+
+// --- Hatlar -----------------------------------------------------------------
+const LINES = {
+  m11: {
+    id: "m11", code: "M11", path: "/", stations: M11_STATIONS, fares: M11_FARE, free: M11_FREE,
+    dirTo: "Halkalı yönü", dirFrom: "Gayrettepe yönü",
+    title: "İstanbul Havalimanı Metrosu M11 — Süre, Ücret ve Sefer Saatleri 2026 · Gayrettepe · Halkalı",
+    desc: "İstanbul Havalimanı metrosu (M11) ile iki istasyon arası kaç dakika, kaç TL? Güncel 2026 sefer süreleri, ilk/son tren saatleri, durak listesi ve resmî ücret tarifesi. Gayrettepe – İstanbul Havalimanı – Halkalı.",
+    ogTitle: "İstanbul Havalimanı Metrosu M11 — Süre, Ücret & Sefer Saatleri 2026",
+    ogDesc: "M11 hattında iki istasyon arası süre, mesafe ve güncel ücret. Sefer saatleri, durak listesi ve ücret tarifesi tek sayfada.",
+    appName: "M11 Metro Süre ve Ücret Hesaplayıcı",
+    kicker: "M11 Hattı · İstanbul Metrosu<b>İstanbul Havalimanı Metro Rehberi</b>",
+    lede: "Gayrettepe – İstanbul Havalimanı – Halkalı hattında yolculuğunu seç; süreyi, mesafeyi, durak sayısını ve güncel 2026 ücretini anında gör.",
+    facts: "<span><b>69</b> km hat</span><span><b>15</b> istasyon</span><span><b>120</b> km/s</span><span>Güncel <b>2026</b> verisi</span>",
+    popular: [[0, 6], [14, 6], [1, 6], [0, 14]], faq: M11_FAQ,
+  },
+  b1: {
+    id: "b1", code: "B1", path: "/marmaray", stations: B1_STATIONS, fares: B1_FARE, free: [],
+    dirTo: "Gebze yönü", dirFrom: "Halkalı yönü",
+    title: "Marmaray Süre, Ücret ve Sefer Saatleri 2026 — Halkalı · Gebze Durak Hesaplama",
+    desc: "Marmaray (B1) ile iki istasyon arası kaç dakika, kaç TL? 43 durak, güncel 2026 ücret tarifesi, ilk/son tren saatleri ve aktarma noktaları. Halkalı – Yenikapı – Söğütlüçeşme – Gebze.",
+    ogTitle: "Marmaray — Süre, Ücret & Sefer Saatleri 2026 (Halkalı – Gebze)",
+    ogDesc: "Marmaray hattında iki durak arası süre, mesafe ve güncel ücret. 43 istasyon, sefer saatleri ve ücret tarifesi tek sayfada.",
+    appName: "Marmaray Süre ve Ücret Hesaplayıcı",
+    kicker: "Marmaray B1 · Banliyö Treni<b>Halkalı – Gebze Rehberi</b>",
+    lede: "Halkalı – Yenikapı – Söğütlüçeşme – Gebze hattında yolculuğunu seç; süreyi, mesafeyi, durak sayısını ve güncel 2026 ücretini anında gör.",
+    facts: "<span><b>76</b> km hat</span><span><b>43</b> istasyon</span><span><b>108</b> dk uçtan uca</span><span>Güncel <b>2026</b> verisi</span>",
+    popular: [[0, 42], [12, 16], [0, 12], [16, 42]], faq: B1_FAQ,
+  },
+};
+const OTHER = { m11: "b1", b1: "m11" };
+
+// --- Yardımcılar (sunucu tarafı: SEO içerikleri önceden hesaplamak için) ----
+function lira(v) { return "₺" + v.toFixed(2).replace(".", ","); }
+
+// --- Sayfa üretici: tek hat -------------------------------------------------
+function buildPage(L) {
+const S = L.stations, FARE = L.fares, FREE = L.free;
+const LAST = S.length - 1;
+const other = LINES[OTHER[L.id]];
+function fareFor(n) { for (const f of FARE) if (n <= f.maxN) return f; return FARE[FARE.length - 1]; }
+function tripTime(i, j) { return j > i ? (S[j].tH - S[i].tH) : (S[j].tG - S[i].tG); }
+
+// --- Sık aranan güzergâhlar (SEO) ------------------------------------------
+const POPULAR = L.popular.map(([i, j]) => {
+  const n = Math.abs(i - j);   // gidilen durak sayısı
+  return { i, j, time: tripTime(i, j), n, fare: fareFor(n).tam };
+});
+
+// --- SSS (hem görünür HTML hem JSON-LD için tek kaynak) --------------------
+const FAQ = L.faq;
 
 // --- HTML parçaları (sunucu tarafında üretilir) ----------------------------
 const opts = (sel) => S.map((s, i) => "<option value=\"" + i + "\"" + (i === sel ? " selected" : "") + ">" + s.name + "</option>").join("");
@@ -135,28 +256,27 @@ const faqJsonLd = {
 const appJsonLd = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  "name": "M11 Metro Süre ve Ücret Hesaplayıcı",
-  "url": SITE,
+  "name": L.appName,
+  "url": SITE + L.path,
   "applicationCategory": "TravelApplication",
   "operatingSystem": "Web",
   "inLanguage": "tr-TR",
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "TRY" }
 };
 
-// --- Sayfa -----------------------------------------------------------------
-const HTML = `<!DOCTYPE html>
+return `<!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>İstanbul Havalimanı Metrosu M11 — Süre, Ücret ve Sefer Saatleri 2026 · Gayrettepe · Halkalı</title>
-<meta name="description" content="İstanbul Havalimanı metrosu (M11) ile iki istasyon arası kaç dakika, kaç TL? Güncel 2026 sefer süreleri, ilk/son tren saatleri, durak listesi ve resmî ücret tarifesi. Gayrettepe – İstanbul Havalimanı – Halkalı.">
-<link rel="canonical" href="${SITE}/">
+<title>${L.title}</title>
+<meta name="description" content="${L.desc}">
+<link rel="canonical" href="${SITE}${L.path}">
 <meta property="og:type" content="website">
-<meta property="og:title" content="İstanbul Havalimanı Metrosu M11 — Süre, Ücret & Sefer Saatleri 2026">
-<meta property="og:description" content="M11 hattında iki istasyon arası süre, mesafe ve güncel ücret. Sefer saatleri, durak listesi ve ücret tarifesi tek sayfada.">
+<meta property="og:title" content="${L.ogTitle}">
+<meta property="og:description" content="${L.ogDesc}">
 <meta property="og:locale" content="tr_TR">
-<meta property="og:url" content="${SITE}/">
+<meta property="og:url" content="${SITE}${L.path}">
 <meta name="twitter:card" content="summary">
 <meta name="theme-color" content="#12100F">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -221,6 +341,13 @@ const HTML = `<!DOCTYPE html>
     margin:44px 0 4px; display:flex; align-items:center; gap:10px}
   h2::before{content:""; width:9px; height:9px; background:var(--line); border-radius:2px; transform:rotate(45deg); flex:none}
   .sub{color:var(--faint); font-size:13px; margin:2px 0 16px 19px}
+
+  .linenav{margin-top:14px}
+  .linenav a{display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:600;
+    color:var(--line); text-decoration:none; padding:8px 14px; border:1.5px solid var(--edge);
+    border-radius:999px; background:var(--paper-2); transition:background .15s, border-color .15s;}
+  .linenav a:hover{background:var(--line-soft); border-color:var(--line)}
+  .linenav i{font-style:normal}
 
   /* --- ana kart --- */
   .card{background:var(--card); border:1px solid var(--edge); border-radius:22px; overflow:hidden; margin-top:22px;
@@ -373,12 +500,13 @@ const HTML = `<!DOCTYPE html>
   <div class="topline"></div>
   <header>
     <div class="kicker">
-      <span class="roundel">M11</span>
-      <span class="kt">M11 Hattı · İstanbul Metrosu<b>İstanbul Havalimanı Metro Rehberi</b></span>
+      <span class="roundel">${L.code}</span>
+      <span class="kt">${L.kicker}</span>
     </div>
     <h1>İki durak arası <em>kaç dakika,</em> kaç lira?</h1>
-    <p class="lede">Gayrettepe – İstanbul Havalimanı – Halkalı hattında yolculuğunu seç; süreyi, mesafeyi, durak sayısını ve güncel 2026 ücretini anında gör.</p>
-    <div class="facts"><span><b>69</b> km hat</span><span><b>15</b> istasyon</span><span><b>120</b> km/s</span><span>Güncel <b>2026</b> verisi</span></div>
+    <p class="lede">${L.lede}</p>
+    <div class="facts">${L.facts}</div>
+    <nav class="linenav"><a href="${other.path}">${other.code === "B1" ? "Marmaray hesaplayıcı" : "M11 hesaplayıcı"} <i>→</i></a></nav>
   </header>
 
   <div class="card">
@@ -392,18 +520,18 @@ const HTML = `<!DOCTYPE html>
       </button>
       <div class="field to">
         <label for="to"><b>B</b> Nereye</label>
-        <div class="selwrap"><select id="to">${opts(14)}</select></div>
+        <div class="selwrap"><select id="to">${opts(LAST)}</select></div>
       </div>
     </div>
     <div class="board">
-      <div class="route" id="route">Gayrettepe <span class="arr">→</span> Halkalı</div>
-      <div class="time"><b id="time">64</b><span class="unit">dakika</span></div>
-      <div class="dir" id="dir">Halkalı yönü</div>
+      <div class="route" id="route">${S[0].name} <span class="arr">→</span> ${S[LAST].name}</div>
+      <div class="time"><b id="time">${tripTime(0, LAST)}</b><span class="unit">dakika</span></div>
+      <div class="dir" id="dir">${L.dirTo}</div>
     </div>
     <div class="stats">
-      <div class="stat"><span class="k">Mesafe</span><span class="v"><b id="dist">69,1</b> km</span></div>
-      <div class="stat"><span class="k">Durak</span><span class="v"><b id="stops">14</b></span></div>
-      <div class="stat fare"><span class="k">Ücret · tam</span><span class="v"><b id="fare">₺66,39</b></span><span class="sub" id="faresub"></span></div>
+      <div class="stat"><span class="k">Mesafe</span><span class="v"><b id="dist">${S[LAST].km.toFixed(1).replace(".", ",")}</b> km</span></div>
+      <div class="stat"><span class="k">Durak</span><span class="v"><b id="stops">${LAST}</b></span></div>
+      <div class="stat fare"><span class="k">Ücret · tam</span><span class="v"><b id="fare">${lira(fareFor(LAST).tam)}</b></span><span class="sub" id="faresub"></span></div>
     </div>
     <p class="note" id="note"></p>
   </div>
@@ -423,10 +551,10 @@ const HTML = `<!DOCTYPE html>
   <div class="routes">${popularHTML}</div>
 
   <h2>Durak listesi & ilk / son tren</h2>
-  <p class="sub">15 istasyon, aktarma noktaları ve her iki yön için ilk–son sefer saatleri.</p>
+  <p class="sub">${S.length} istasyon, aktarma noktaları ve her iki yön için ilk–son sefer saatleri.</p>
   <div class="tablewrap">
     <table>
-      <thead><tr><th>İstasyon</th><th>İlçe</th><th>Aktarma</th><th>Halkalı yönü<br>(ilk–son)</th><th>Gayrettepe yönü<br>(ilk–son)</th></tr></thead>
+      <thead><tr><th>İstasyon</th><th>İlçe</th><th>Aktarma</th><th>${L.dirTo}<br>(ilk–son)</th><th>${L.dirFrom}<br>(ilk–son)</th></tr></thead>
       <tbody>${stationRows}</tbody>
     </table>
   </div>
@@ -439,10 +567,10 @@ const HTML = `<!DOCTYPE html>
       <tbody>${fareRows}</tbody>
     </table>
   </div>
-  <p class="fine">Kademeler <b>gidilen durak</b> sayısına göredir (iki komşu istasyon arası = 1 durak); uçtan uca yolculuk 14 duraktır. Girişte en yüksek ücret alınır, çıkışta gidilmeyen mesafe karta iade edilir. Gece 00:30–05:30 seferlerinde çift ücret uygulanır.</p>
+  <p class="fine">Kademeler <b>gidilen durak</b> sayısına göredir (iki komşu istasyon arası = 1 durak); uçtan uca yolculuk ${LAST} duraktır. Girişte en yüksek ücret alınır, çıkışta gidilmeyen mesafe karta iade edilir. Gece 00:30–05:30 seferlerinde çift ücret uygulanır.</p>
 
   <h2>Sıkça sorulan sorular</h2>
-  <p class="sub">M11 hakkında en çok merak edilenler.</p>
+  <p class="sub">${L.code === "B1" ? "Marmaray" : L.code} hakkında en çok merak edilenler.</p>
   ${faqHTML}
 
   <p class="foot">
@@ -455,6 +583,7 @@ const HTML = `<!DOCTYPE html>
 <script>
 (function(){
   var ST = ${JSON.stringify(S.map(s => ({ n: s.name, km: s.km, tH: s.tH, tG: s.tG })))};
+  var DIR = ${JSON.stringify([L.dirTo, L.dirFrom])};
   var FARE = ${JSON.stringify(FARE)};
   var FREE = ${JSON.stringify(FREE)};
   var CAMP_END = new Date(2026, 6, 31, 23, 59, 59);
@@ -517,7 +646,7 @@ const HTML = `<!DOCTYPE html>
     var i = +fromEl.value, j = +toEl.value, a = ST[i], b = ST[j];
     var dist = Math.abs(a.km - b.km), stops = Math.abs(i - j);   // gidilen durak sayısı
     var time = j > i ? (b.tH - a.tH) : (b.tG - a.tG);
-    var dir = j > i ? "Halkalı yönü" : (j < i ? "Gayrettepe yönü" : "—");
+    var dir = j > i ? DIR[0] : (j < i ? DIR[1] : "—");
     $("route").innerHTML = a.n + ' <span class="arr">→</span> ' + b.n;
     $("dist").textContent = dist.toFixed(1).replace(".", ",");
     $("stops").textContent = stops;
@@ -564,11 +693,16 @@ const HTML = `<!DOCTYPE html>
 </script>
 </body>
 </html>`;
+}
+
+const PAGES = { "/": buildPage(LINES.m11), "/marmaray": buildPage(LINES.b1) };
 
 const ROBOTS = "User-agent: *\nAllow: /\nSitemap: " + SITE + "/sitemap.xml\n";
 const SITEMAP = '<?xml version="1.0" encoding="UTF-8"?>\n' +
   '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
-  "  <url><loc>" + SITE + "/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>\n" +
+  Object.values(LINES).map(l =>
+    "  <url><loc>" + SITE + l.path + "</loc><changefreq>weekly</changefreq><priority>" +
+    (l.path === "/" ? "1.0" : "0.9") + "</priority></url>\n").join("") +
   "</urlset>\n";
 
 export default {
@@ -580,7 +714,10 @@ export default {
       return new Response(SITEMAP, { headers: { "content-type": "application/xml; charset=utf-8" } });
     if (url.pathname === "/health")
       return new Response("ok");
-    return new Response(HTML, {
+    const path = url.pathname.replace(/\/+$/, "") || "/";
+    const body = PAGES[path];
+    if (!body) return new Response("Sayfa bulunamadı", { status: 404, headers: { "content-type": "text/plain; charset=utf-8" } });
+    return new Response(body, {
       headers: {
         "content-type": "text/html; charset=utf-8",
         "cache-control": "public, max-age=3600",

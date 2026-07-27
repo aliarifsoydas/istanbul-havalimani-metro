@@ -1,20 +1,41 @@
-# İstanbul Havalimanı Metrosu (M11) — Süre, Ücret & Sefer Saatleri
+# İstanbul Raylı Sistem Hesaplayıcı — M11 & Marmaray
 
-M11 metro hattında (Gayrettepe · İstanbul Havalimanı · Halkalı) iki istasyon arası
-**süre, mesafe, istasyon sayısı ve güncel 2026 ücretini** hesaplayan tek sayfalık,
-bağımlılıksız statik site. GitHub Pages ile yayınlanır.
+İki istasyon arası **süre, mesafe, durak sayısı ve güncel 2026 ücretini** hesaplayan,
+bağımlılıksız statik site. Cloudflare Pages ile yayınlanır.
+
+| Sayfa | Hat | İstasyon |
+|---|---|---|
+| `/` | **M11** — Gayrettepe · İstanbul Havalimanı · Halkalı | 15 |
+| `/marmaray` | **Marmaray B1** — Halkalı · Yenikapı · Söğütlüçeşme · Gebze | 43 |
 
 ## Yapı
-- `index.html` — yayınlanan sayfa (tüm CSS/JS gömülü, statik)
-- `robots.txt`, `sitemap.xml` — SEO
-- `worker.js` — kaynak (Cloudflare Worker biçimi); `index.html` bundan üretilir
+- `worker.js` — **tek kaynak.** Hat verisi, ücret kademeleri, sayfa şablonu ve
+  istemci JS'i burada. Cloudflare Worker biçiminde; `export default { fetch }`.
+- `build.mjs` — `worker.js`'ten statik dosyaları üretir
+- `index.html`, `marmaray/index.html` — üretilmiş sayfalar (tüm CSS/JS gömülü)
+- `robots.txt`, `sitemap.xml` — üretilmiş SEO dosyaları
+
+`index.html` ve `marmaray/index.html` **elle düzenlenmemeli** — `worker.js` değişip
+`build.mjs` çalıştırılmalı, yoksa iki kopya birbirinden ayrışır.
 
 ## Güncelleme
-`worker.js` içindeki veriyi düzenledikten sonra statik dosyaları yeniden üret:
 ```bash
-cp worker.js worker.mjs
-node -e "import('./worker.mjs').then(async m=>{const r=await m.default.fetch(new Request('https://istanbul-havalimani-metro.github.io/'));require('fs').writeFileSync('index.html',await r.text())})"
+node build.mjs      # index.html, marmaray/index.html, robots.txt, sitemap.xml
 ```
 
-## Veri kaynakları
-Süreler TCDD son tren tarifesinden; ücretler İBB/UKOME 16.02.2026 tarifesinden türetilmiştir. Gayriresmîdir.
+Yeni hat eklemek için `worker.js` içindeki `LINES` nesnesine bir giriş ve
+`build.mjs` içindeki `OUT` eşlemesine bir satır eklemek yeterli.
+
+## Veri kaynakları ve yöntem
+- **Süreler:** TCDD son tren tarifesinden türetildi. Son tren uçtan uca giden tek
+  bir trendir, bu yüzden geçiş saatleri süreyle birebir tutarlıdır.
+- **İlk tren saatleri:** her istasyonun *kendi* ilk treni; hepsi aynı sefere ait
+  değildir (ara depolardan kalkışlar var). Bu yüzden sütun hat boyunca düz artmaz —
+  bu bir hata değil, gerçek veridir.
+- **Ücretler:** İBB/UKOME 20.07.2026 tarifesi (%10 zam sonrası). Kademe parametresi
+  **gidilen durak sayısı**dır (`|i−j|`), uçtan uca istasyon sayısı değil.
+  M11'de 6 kademe (13–14 durakta biter), Marmaray'da 7 durakta bir kademe.
+- **Marmaray km:** istasyon koordinatlarından kümülatif kuş uçuşu mesafe, resmî
+  75,771 km'ye ölçeklendi; ±birkaç yüz metre yaklaşıktır.
+
+Gayriresmîdir; ücret ve saatler değişebilir.
