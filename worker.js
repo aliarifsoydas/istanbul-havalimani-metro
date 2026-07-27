@@ -134,6 +134,8 @@ const M11_FAQ = [
     a: "Seferler yaklaşık 06:00'da başlar. Son tren Gayrettepe'den 23:55'te kalkıp Halkalı'ya 00:59'da varır; Halkalı'dan son tren 23:44'te kalkar." },
   { q: "Halkalı - İstanbul Havalimanı metrosu ücretsiz mi?",
     a: "31 Temmuz 2026 tarihine kadar İbn Haldun Üniversitesi, Kayaşehir, Olimpiyatköy, Halkalı Stadı ve Halkalı istasyonlarından biniş ücretsizdir; diğer istasyonlardan biniş ücretlidir." },
+  { q: "İstanbul Havalimanı'ndan Üsküdar'a veya Kadıköy'e nasıl gidilir?",
+    a: "M11 ile Halkalı'ya gidilir (33 dakika, 8 durak), aynı istasyondan Marmaray'a aktarma yapılır. Halkalı'dan Üsküdar'a Marmaray ile 40 dakika sürer. Aktarma payıyla birlikte toplam yaklaşık 85 dakika ve 95,63 TL'dir. Marmaray aktarma indirimi vermediği için iki hattın ücreti ayrı ayrı ödenir." },
   { q: "M11 hangi hatlara aktarma yapıyor?",
     a: "Gayrettepe'de M2 ve Metrobüs, Kâğıthane'de M7, Kayaşehir'de M3, Olimpiyatköy'de M9, Halkalı'da Marmaray, M1 ve Yüksek Hızlı Tren aktarması yapılabilir." },
 ];
@@ -152,7 +154,9 @@ const B1_FAQ = [
   { q: "Marmaray hangi hatlara aktarma yapıyor?",
     a: "Yenikapı'da M1, M2 ve T1; Üsküdar'da M5; Ayrılık Çeşmesi, Bostancı, Kartal ve Pendik'te M4; Bakırköy'de M3; Ataköy'de M9; Sirkeci'de T1; Küçükçekmece ve Söğütlüçeşme'de Metrobüs; Halkalı'da M11 ve YHT aktarması yapılabilir." },
   { q: "Marmaray'dan İstanbul Havalimanı'na nasıl gidilir?",
-    a: "Marmaray ile Halkalı'ya gidip aynı istasyondan M11 metrosuna aktarma yapılır. Halkalı'dan İstanbul Havalimanı'na M11 ile yaklaşık 33 dakika sürer ve tam ücret 47,89 TL'dir." },
+    a: "Marmaray ile Halkalı'ya gidip aynı istasyondan M11 metrosuna aktarma yapılır. Halkalı'dan İstanbul Havalimanı'na M11 ile 33 dakika sürer, tam ücret 47,89 TL'dir. Üsküdar'dan toplam yaklaşık 84 dakika ve 95,63 TL, Söğütlüçeşme'den 91 dakika ve 103,00 TL tutar." },
+  { q: "Marmaray ile M11 arasında aktarma indirimi var mı?",
+    a: "Hayır. Marmaray aktarma vermeyen bir ana hat olarak işletilir; Halkalı'da M11'e geçtiğinizde iki hattın ücreti ayrı ayrı tahsil edilir. Her iki hat da girişte en yüksek ücreti alıp çıkışta gidilmeyen mesafeyi iade eder." },
 ];
 
 // --- Hatlar -----------------------------------------------------------------
@@ -161,30 +165,64 @@ const LINES = {
     id: "m11", code: "M11", path: "/", stations: M11_STATIONS, fares: M11_FARE, free: M11_FREE,
     dirTo: "Halkalı yönü", dirFrom: "Gayrettepe yönü",
     title: "İstanbul Havalimanı Metrosu M11 — Süre, Ücret ve Sefer Saatleri 2026 · Gayrettepe · Halkalı",
-    desc: "İstanbul Havalimanı metrosu (M11) ile iki istasyon arası kaç dakika, kaç TL? Güncel 2026 sefer süreleri, ilk/son tren saatleri, durak listesi ve resmî ücret tarifesi. Gayrettepe – İstanbul Havalimanı – Halkalı.",
+    desc: "İstanbul Havalimanı metrosu (M11) ile iki istasyon arası kaç dakika, kaç TL? Marmaray aktarmalı rotalar dahil: Havalimanı – Üsküdar, Havalimanı – Söğütlüçeşme. Güncel 2026 süreler, sefer saatleri ve resmî ücret tarifesi.",
     ogTitle: "İstanbul Havalimanı Metrosu M11 — Süre, Ücret & Sefer Saatleri 2026",
     ogDesc: "M11 hattında iki istasyon arası süre, mesafe ve güncel ücret. Sefer saatleri, durak listesi ve ücret tarifesi tek sayfada.",
     appName: "M11 Metro Süre ve Ücret Hesaplayıcı",
     kicker: "M11 Hattı · İstanbul Metrosu<b>İstanbul Havalimanı Metro Rehberi</b>",
-    lede: "Gayrettepe – İstanbul Havalimanı – Halkalı hattında yolculuğunu seç; süreyi, mesafeyi, durak sayısını ve güncel 2026 ücretini anında gör.",
+    lede: "M11 ve Marmaray'ın 57 istasyonu arasında yolculuğunu seç; süreyi, durak sayısını, aktarmayı ve güncel 2026 ücretini anında gör. Halkalı aktarmalı rotalar otomatik hesaplanır.",
     facts: "<span><b>69</b> km hat</span><span><b>15</b> istasyon</span><span><b>120</b> km/s</span><span>Güncel <b>2026</b> verisi</span>",
-    popular: [[0, 6], [14, 6], [1, 6], [0, 14]], faq: M11_FAQ,
+    popular: [["m11:0", "m11:6"], ["m11:14", "m11:6"], ["m11:6", "b1:14"], ["m11:6", "b1:16"]], faq: M11_FAQ,
   },
   b1: {
     id: "b1", code: "B1", path: "/marmaray", stations: B1_STATIONS, fares: B1_FARE, free: [],
     dirTo: "Gebze yönü", dirFrom: "Halkalı yönü",
     title: "Marmaray Süre, Ücret ve Sefer Saatleri 2026 — Halkalı · Gebze Durak Hesaplama",
-    desc: "Marmaray (B1) ile iki istasyon arası kaç dakika, kaç TL? 43 durak, güncel 2026 ücret tarifesi, ilk/son tren saatleri ve aktarma noktaları. Halkalı – Yenikapı – Söğütlüçeşme – Gebze.",
+    desc: "Marmaray (B1) ile iki istasyon arası kaç dakika, kaç TL? 43 durak, güncel 2026 ücret tarifesi ve sefer saatleri. M11 aktarmalı rotalar dahil: Üsküdar – İstanbul Havalimanı. Halkalı – Yenikapı – Söğütlüçeşme – Gebze.",
     ogTitle: "Marmaray — Süre, Ücret & Sefer Saatleri 2026 (Halkalı – Gebze)",
     ogDesc: "Marmaray hattında iki durak arası süre, mesafe ve güncel ücret. 43 istasyon, sefer saatleri ve ücret tarifesi tek sayfada.",
     appName: "Marmaray Süre ve Ücret Hesaplayıcı",
     kicker: "Marmaray B1 · Banliyö Treni<b>Halkalı – Gebze Rehberi</b>",
-    lede: "Halkalı – Yenikapı – Söğütlüçeşme – Gebze hattında yolculuğunu seç; süreyi, mesafeyi, durak sayısını ve güncel 2026 ücretini anında gör.",
+    lede: "Marmaray ve M11'in 57 istasyonu arasında yolculuğunu seç; süreyi, durak sayısını, aktarmayı ve güncel 2026 ücretini anında gör. Halkalı aktarmalı rotalar otomatik hesaplanır.",
     facts: "<span><b>76</b> km hat</span><span><b>43</b> istasyon</span><span><b>108</b> dk uçtan uca</span><span>Güncel <b>2026</b> verisi</span>",
-    popular: [[0, 42], [12, 16], [0, 12], [16, 42]], faq: B1_FAQ,
+    popular: [["b1:0", "b1:42"], ["b1:12", "b1:16"], ["b1:14", "m11:6"], ["b1:16", "m11:6"]], faq: B1_FAQ,
   },
 };
 const OTHER = { m11: "b1", b1: "m11" };
+
+// Aktarma noktası: iki hat yalnızca Halkalı'da buluşuyor.
+// HUB[hat] = o hattaki Halkalı'nın indeksi. Yeni hat eklenirse burası
+// bir kenar listesine dönüşmeli; iki hat için tek nokta yeterli.
+const HUB = { m11: 14, b1: 0 };
+// Sefer aralıkları (dk) — aktarma beklemesi bundan tahmin edilir.
+const HEADWAY = { m11: 15, b1: 15 };
+// Halkalı içinde M11 ↔ Marmaray peronları arası yürüme payı (dk, tahmini)
+const TRANSFER_WALK = 4;
+
+// Ağ genelinde istasyon kimliği: "hat:indeks". Halkalı iki hatta da var,
+// tek düğüm olarak "m11:14" ile temsil edilir.
+const NODE_ID = (line, i) => line + ":" + i;
+const HUB_ID = NODE_ID("m11", HUB.m11);
+
+// Sunucu tarafı rota planlayıcı — istemcideki route()/calc() ile aynı mantık.
+function fareOn(line, n) { const F = LINES[line].fares; for (const f of F) if (n <= f.maxN) return f; return F[F.length - 1]; }
+function nodeOf(id) { const [l, i] = id.split(":"); return { l, i: +i }; }
+function planRoute(aId, bId) {
+  const a = nodeOf(aId), b = nodeOf(bId);
+  const legs = a.l === b.l
+    ? [{ l: a.l, i: a.i, j: b.i }]
+    : [{ l: a.l, i: a.i, j: HUB[a.l] }, { l: b.l, i: HUB[b.l], j: b.i }].filter(g => g.i !== g.j);
+  let time = 0, stops = 0, fare = 0;
+  legs.forEach((g, k) => {
+    const St = LINES[g.l].stations;
+    time += g.j > g.i ? (St[g.j].tH - St[g.i].tH) : (St[g.j].tG - St[g.i].tG);
+    const n = Math.abs(g.i - g.j);
+    stops += n; fare += fareOn(g.l, n).tam;
+    if (k > 0) time += TRANSFER_WALK + Math.round(HEADWAY[g.l] / 2);
+  });
+  return { legs, time, stops, fare, xfer: legs.length - 1,
+           from: LINES[a.l].stations[a.i].name, to: LINES[b.l].stations[b.i].name };
+}
 
 // --- Yardımcılar (sunucu tarafı: SEO içerikleri önceden hesaplamak için) ----
 function lira(v) { return "₺" + v.toFixed(2).replace(".", ","); }
@@ -198,21 +236,31 @@ function fareFor(n) { for (const f of FARE) if (n <= f.maxN) return f; return FA
 function tripTime(i, j) { return j > i ? (S[j].tH - S[i].tH) : (S[j].tG - S[i].tG); }
 
 // --- Sık aranan güzergâhlar (SEO) ------------------------------------------
-const POPULAR = L.popular.map(([i, j]) => {
-  const n = Math.abs(i - j);   // gidilen durak sayısı
-  return { i, j, time: tripTime(i, j), n, fare: fareFor(n).tam };
-});
+const POPULAR = L.popular.map(([a, b]) => ({ a, b, ...planRoute(a, b) }));
 
 // --- SSS (hem görünür HTML hem JSON-LD için tek kaynak) --------------------
 const FAQ = L.faq;
 
 // --- HTML parçaları (sunucu tarafında üretilir) ----------------------------
-const opts = (sel) => S.map((s, i) => "<option value=\"" + i + "\"" + (i === sel ? " selected" : "") + ">" + s.name + "</option>").join("");
+// Ağ genelinde seçenekler: M11 · aktarma · Marmaray şeklinde gruplanır.
+// Halkalı yalnızca "Aktarma noktası" grubunda görünür (iki hatta da ait).
+const opts = (selId) => {
+  const grp = (label, line, skipHub) =>
+    "<optgroup label=\"" + label + "\">" +
+    LINES[line].stations.map((s, i) => (skipHub && i === HUB[line]) ? "" :
+      "<option value=\"" + NODE_ID(line, i) + "\"" + (NODE_ID(line, i) === selId ? " selected" : "") + ">" + s.name + "</option>"
+    ).join("") + "</optgroup>";
+  return grp("M11 · Gayrettepe – Halkalı", "m11", true) +
+    "<optgroup label=\"Aktarma noktası\"><option value=\"" + HUB_ID + "\"" +
+      (HUB_ID === selId ? " selected" : "") + ">Halkalı · M11 ↔ Marmaray</option></optgroup>" +
+    grp("Marmaray · Halkalı – Gebze", "b1", true);
+};
 
 const popularHTML = POPULAR.map(p =>
-  "<button class=\"jump\" type=\"button\" data-from=\"" + p.i + "\" data-to=\"" + p.j + "\">" +
-  "<span class=\"j-od\">" + S[p.i].name + "<i>→</i>" + S[p.j].name + "</span>" +
-  "<span class=\"j-meta\"><b>" + p.time + " dk</b><em>" + p.n + " durak</em><em>" + lira(p.fare) + "</em></span>" +
+  "<button class=\"jump\" type=\"button\" data-from=\"" + p.a + "\" data-to=\"" + p.b + "\">" +
+  "<span class=\"j-od\">" + p.from + "<i>→</i>" + p.to + "</span>" +
+  "<span class=\"j-meta\"><b>" + p.time + " dk</b><em>" + p.stops + " durak</em><em>" + lira(p.fare) + "</em>" +
+    (p.xfer ? "<em class=\"x\">aktarmalı</em>" : "") + "</span>" +
   "<span class=\"j-go\">→</span>" +
   "</button>"
 ).join("");
@@ -341,6 +389,18 @@ return `<!DOCTYPE html>
     margin:44px 0 4px; display:flex; align-items:center; gap:10px}
   h2::before{content:""; width:9px; height:9px; background:var(--line); border-radius:2px; transform:rotate(45deg); flex:none}
   .sub{color:var(--faint); font-size:13px; margin:2px 0 16px 19px}
+
+  .j-meta em.x{color:var(--line); font-weight:700}
+  .legs{display:none; flex-direction:column; gap:0; padding:0 22px 4px}
+  .legs.on{display:flex}
+  .leg{display:flex; align-items:baseline; gap:10px; padding:11px 0; border-top:1px dashed var(--edge); font-size:13.5px}
+  .leg:first-child{border-top:none}
+  .leg .lg-code{flex:none; font-family:"Martian Mono",ui-monospace,monospace; font-size:11px; font-weight:700;
+    letter-spacing:.5px; color:#fff; background:var(--line); border-radius:6px; padding:3px 7px}
+  .leg.xfer .lg-code{background:var(--paper-2); color:var(--faint); border:1.5px solid var(--edge)}
+  .leg .lg-od{flex:1 1 auto; min-width:0; font-weight:600; color:var(--ink)}
+  .leg .lg-meta{flex:none; color:var(--faint); font-variant-numeric:tabular-nums}
+  .leg.xfer .lg-od{font-weight:500; color:var(--faint)}
 
   .linenav{margin-top:14px}
   .linenav a{display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:600;
@@ -513,14 +573,14 @@ return `<!DOCTYPE html>
     <div class="picker">
       <div class="field from">
         <label for="from"><b>A</b> Nereden</label>
-        <div class="selwrap"><select id="from">${opts(0)}</select></div>
+        <div class="selwrap"><select id="from">${opts(NODE_ID(L.id, 0))}</select></div>
       </div>
       <button id="swap" class="swap" type="button" aria-label="Yönü değiştir" title="Yönü değiştir">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 4l-3 3M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3"/></svg>
       </button>
       <div class="field to">
         <label for="to"><b>B</b> Nereye</label>
-        <div class="selwrap"><select id="to">${opts(LAST)}</select></div>
+        <div class="selwrap"><select id="to">${opts(NODE_ID(L.id, LAST))}</select></div>
       </div>
     </div>
     <div class="board">
@@ -533,6 +593,7 @@ return `<!DOCTYPE html>
       <div class="stat"><span class="k">Durak</span><span class="v"><b id="stops">${LAST}</b></span></div>
       <div class="stat fare"><span class="k">Ücret · tam</span><span class="v"><b id="fare">${lira(fareFor(LAST).tam)}</b></span><span class="sub" id="faresub"></span></div>
     </div>
+    <div class="legs" id="legs"></div>
     <p class="note" id="note"></p>
   </div>
 
@@ -547,7 +608,7 @@ return `<!DOCTYPE html>
   </div>
 
   <h2>Sık aranan güzergâhlar</h2>
-  <p class="sub">Tek dokunuşla en çok aranan yolculukları hesapla.</p>
+  <p class="sub">Tek dokunuşla en çok aranan yolculukları hesapla — aktarmalı rotalar dahil.</p>
   <div class="routes">${popularHTML}</div>
 
   <h2>Durak listesi & ilk / son tren</h2>
@@ -582,13 +643,33 @@ return `<!DOCTYPE html>
 
 <script>
 (function(){
-  var ST = ${JSON.stringify(S.map(s => ({ n: s.name, km: s.km, tH: s.tH, tG: s.tG })))};
-  var DIR = ${JSON.stringify([L.dirTo, L.dirFrom])};
-  var FARE = ${JSON.stringify(FARE)};
-  var FREE = ${JSON.stringify(FREE)};
+  var NET = ${JSON.stringify(Object.fromEntries(Object.entries(LINES).map(([k, l]) => [k, {
+    code: l.code === "B1" ? "Marmaray" : l.code,
+    dir: [l.dirTo, l.dirFrom],
+    head: HEADWAY[k],
+    hub: HUB[k],
+    free: l.free,
+    fares: l.fares,
+    st: l.stations.map(s => ({ n: s.name, km: s.km, tH: s.tH, tG: s.tG })),
+  }])))};
+  var LINE = ${JSON.stringify(L.id)};
+  var WALK = ${TRANSFER_WALK};
   var CAMP_END = new Date(2026, 6, 31, 23, 59, 59);
   var lira = function(v){ return "₺" + v.toFixed(2).replace(".", ","); };
-  function fareFor(n){ for(var k=0;k<FARE.length;k++){ if(n<=FARE[k].maxN) return FARE[k]; } return FARE[FARE.length-1]; }
+  function fareFor(l, n){ var F = NET[l].fares; for(var k=0;k<F.length;k++){ if(n<=F[k].maxN) return F[k]; } return F[F.length-1]; }
+  function parseId(v){ var p = String(v).split(":"); return { l: p[0], i: +p[1] }; }
+  // Aktarma noktası her iki hatta da var; istenen hatta karşılığını verir.
+  function onLine(node, line){ return node.l === line ? node.i : (node.l !== line && isHub(node) ? NET[line].hub : -1); }
+  function isHub(node){ return node.i === NET[node.l].hub; }
+  function legTime(l, i, j){ var S = NET[l].st; return j > i ? (S[j].tH - S[i].tH) : (S[j].tG - S[i].tG); }
+
+  // Rota: iki hat yalnızca Halkalı'da kesiştiği için en fazla bir aktarma var.
+  function route(a, b){
+    if(a.l === b.l) return [{ l: a.l, i: a.i, j: b.i }];
+    var ai = onLine(a, a.l), bj = onLine(b, b.l);
+    var legs = [{ l: a.l, i: ai, j: NET[a.l].hub }, { l: b.l, i: NET[b.l].hub, j: bj }];
+    return legs.filter(function(g){ return g.i !== g.j; });
+  }
   var $ = function(id){ return document.getElementById(id); };
   var fromEl = $("from"), toEl = $("to"), timeEl = $("time");
   var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -607,7 +688,11 @@ return `<!DOCTYPE html>
     el.addEventListener("click", function(){ pickNode(+el.getAttribute("data-idx")); });
   });
   function paintRail(){
-    var i = +fromEl.value, j = +toEl.value, lo = Math.min(i,j), hi = Math.max(i,j);
+    // Şerit yalnızca bu sayfanın hattını gösterir; uçlardan biri başka hattaysa
+    // o uç Halkalı'ya (aktarma noktasına) düşürülerek boyanır.
+    var A = parseId(fromEl.value), B = parseId(toEl.value);
+    var i = A.l === LINE ? A.i : NET[LINE].hub, j = B.l === LINE ? B.i : NET[LINE].hub;
+    var lo = Math.min(i,j), hi = Math.max(i,j);
     nodes.forEach(function(el, k){
       el.classList.remove("between","pick","to");
       var tag = el.querySelector(".tagab");
@@ -627,10 +712,10 @@ return `<!DOCTYPE html>
   function setHint(html){ hint.innerHTML = html; }
   function pickNode(k){
     if(!awaitingTo){
-      fromEl.value = k; awaitingTo = true;
-      setHint("Kalkış: <b>" + ST[k].n + "</b> — şimdi <b>varış</b> istasyonuna dokun.");
+      fromEl.value = LINE + ":" + k; awaitingTo = true;
+      setHint("Kalkış: <b>" + NET[LINE].st[k].n + "</b> — şimdi <b>varış</b> istasyonuna dokun.");
     } else {
-      toEl.value = k; awaitingTo = false;
+      toEl.value = LINE + ":" + k; awaitingTo = false;
       setHint("Haritadan istasyona dokun: önce <b>kalkış</b>, sonra <b>varış</b>.");
     }
     scrollNodeIntoView(k);
@@ -643,34 +728,68 @@ return `<!DOCTYPE html>
   }
 
   function calc(){
-    var i = +fromEl.value, j = +toEl.value, a = ST[i], b = ST[j];
-    var dist = Math.abs(a.km - b.km), stops = Math.abs(i - j);   // gidilen durak sayısı
-    var time = j > i ? (b.tH - a.tH) : (b.tG - a.tG);
-    var dir = j > i ? DIR[0] : (j < i ? DIR[1] : "—");
+    var A = parseId(fromEl.value), B = parseId(toEl.value);
+    var a = NET[A.l].st[A.i], b = NET[B.l].st[B.i];
+    var fare = $("fare"), sub = $("faresub"), note = $("note"), legsEl = $("legs");
     $("route").innerHTML = a.n + ' <span class="arr">→</span> ' + b.n;
+    paintRail();
+
+    var same = (A.l === B.l && A.i === B.i) || (isHub(A) && isHub(B));
+    if(same){
+      setTime("0"); $("dist").textContent = "0,0"; $("stops").textContent = "0";
+      $("dir").textContent = "—"; fare.textContent = "—"; sub.textContent = "";
+      legsEl.className = "legs"; legsEl.innerHTML = "";
+      note.textContent = "Kalkış ve varış aynı istasyon. Farklı bir durak seçin.";
+      return;
+    }
+
+    var legs = route(A, B), campaign = new Date() <= CAMP_END;
+    var time = 0, stops = 0, dist = 0, cost = 0, ogr = 0, sos = 0, freeLeg = false, rows = [];
+    for(var k = 0; k < legs.length; k++){
+      var g = legs[k], N = NET[g.l], S = N.st;
+      var t = legTime(g.l, g.i, g.j), n = Math.abs(g.i - g.j);
+      var d = Math.abs(S[g.i].km - S[g.j].km);
+      time += t; stops += n; dist += d;
+      var free = campaign && N.free.indexOf(g.i) !== -1;
+      var f = fareFor(g.l, n);
+      if(free) freeLeg = true; else { cost += f.tam; ogr += f.ogr; sos += f.sos; }
+      if(k > 0){                                   // aktarma satırı
+        var wait = Math.round(N.head / 2);
+        time += WALK + wait;
+        rows.push('<div class="leg xfer"><span class="lg-code">⇄</span>' +
+          '<span class="lg-od">Halkalı aktarması · ' + NET[legs[k-1].l].code + ' → ' + N.code + '</span>' +
+          '<span class="lg-meta">~' + WALK + ' dk yürüme + ort. ' + wait + ' dk bekleme</span></div>');
+      }
+      rows.push('<div class="leg"><span class="lg-code">' + N.code + '</span>' +
+        '<span class="lg-od">' + S[g.i].n + ' → ' + S[g.j].n + '</span>' +
+        '<span class="lg-meta">' + t + ' dk · ' + n + ' durak · ' + (free ? "ücretsiz" : lira(f.tam)) + '</span></div>');
+    }
+
+    setTime(String(time));
     $("dist").textContent = dist.toFixed(1).replace(".", ",");
     $("stops").textContent = stops;
-    $("dir").textContent = dir;
-    var fare = $("fare"), sub = $("faresub"), note = $("note");
-    paintRail();
-    if(i === j){ setTime("0"); fare.textContent = "—"; sub.textContent = ""; note.textContent = "Kalkış ve varış aynı istasyon. Farklı bir durak seçin."; return; }
-    setTime(String(time));
-    var campaign = new Date() <= CAMP_END;
-    if(campaign && FREE.indexOf(i) !== -1){
-      fare.textContent = "Ücretsiz"; sub.textContent = "31 Tem 2026'ya kadar biniş bedava";
-    } else {
-      var f = fareFor(stops);
-      fare.textContent = lira(f.tam);
-      sub.textContent = "Öğr. " + lira(f.ogr) + " · Sosyal " + lira(f.sos);
+    $("dir").textContent = legs.length > 1 ? "Halkalı aktarmalı"
+      : (legs[0].j > legs[0].i ? NET[legs[0].l].dir[0] : NET[legs[0].l].dir[1]);
+
+    if(cost === 0 && freeLeg){ fare.textContent = "Ücretsiz"; sub.textContent = "31 Tem 2026'ya kadar biniş bedava"; }
+    else {
+      fare.textContent = lira(cost);
+      sub.textContent = "Öğr. " + lira(ogr) + " · Sosyal " + lira(sos) + (freeLeg ? " · bir bacak ücretsiz" : "");
     }
-    note.textContent = "Süre, TCDD son tren tarifesinden (" + dir + "). Saatler dakikaya yuvarlıdır; iki yön ±1 dk farklı olabilir.";
+
+    legsEl.innerHTML = legs.length > 1 ? rows.join("") : "";
+    legsEl.className = legs.length > 1 ? "legs on" : "legs";
+
+    note.textContent = legs.length > 1
+      ? "Marmaray aktarma indirimi vermez: iki hattın ücreti ayrı ayrı ödenir. Aktarma payı sefer aralığından tahmindir (bekleme 0–" + NET[legs[1].l].head + " dk arasında değişir)."
+      : "Süre, TCDD son tren tarifesinden. Saatler dakikaya yuvarlıdır; iki yön ±1 dk farklı olabilir.";
   }
 
   fromEl.addEventListener("change", function(){ awaitingTo = false; calc(); });
   toEl.addEventListener("change", function(){ awaitingTo = false; calc(); });
   $("swap").addEventListener("click", function(){ var t = fromEl.value; fromEl.value = toEl.value; toEl.value = t; awaitingTo = false; calc(); });
   $("railreset").addEventListener("click", function(){
-    fromEl.value = 0; toEl.value = 14; awaitingTo = false;
+    fromEl.value = LINE + ":0"; toEl.value = LINE + ":" + (NET[LINE].st.length - 1); awaitingTo = false;
     setHint("Haritadan istasyona dokun: önce <b>kalkış</b>, sonra <b>varış</b>.");
     calc();
   });

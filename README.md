@@ -1,12 +1,19 @@
 # İstanbul Raylı Sistem Hesaplayıcı — M11 & Marmaray
 
-İki istasyon arası **süre, mesafe, durak sayısı ve güncel 2026 ücretini** hesaplayan,
-bağımlılıksız statik site. Cloudflare Pages ile yayınlanır.
+M11 ve Marmaray'ın **57 istasyonu arasında** süre, mesafe, durak sayısı, aktarma ve
+güncel 2026 ücretini hesaplayan bağımlılıksız statik site. Cloudflare Pages ile yayınlanır.
 
-| Sayfa | Hat | İstasyon |
+Hesaplayıcı **ağ genelinde** çalışır: iki hat Halkalı'da kesişir, farklı hatlardaki
+istasyonlar seçildiğinde rota otomatik olarak iki bacağa bölünür ve aktarma payı
+eklenir. Örnek: *İstanbul Havalimanı → Üsküdar* = 85 dk, 22 durak, ₺95,63.
+
+| Sayfa | Odak | İstasyon |
 |---|---|---|
 | `/` | **M11** — Gayrettepe · İstanbul Havalimanı · Halkalı | 15 |
 | `/marmaray` | **Marmaray B1** — Halkalı · Yenikapı · Söğütlüçeşme · Gebze | 43 |
+
+İki sayfa da aynı ağ genelinde hesaplayıcıyı taşır; farkları başlık, durak/ücret
+tablosu ve SSS içeriğidir (her sayfa kendi hattının aramalarını hedefler).
 
 ## Yapı
 - `worker.js` — **tek kaynak.** Hat verisi, ücret kademeleri, sayfa şablonu ve
@@ -37,5 +44,10 @@ Yeni hat eklemek için `worker.js` içindeki `LINES` nesnesine bir giriş ve
   M11'de 6 kademe (13–14 durakta biter), Marmaray'da 7 durakta bir kademe.
 - **Marmaray km:** istasyon koordinatlarından kümülatif kuş uçuşu mesafe, resmî
   75,771 km'ye ölçeklendi; ±birkaç yüz metre yaklaşıktır.
+- **Aktarma ücreti:** Marmaray "aktarma vermeyen" ana hat olarak işletilir, yani
+  Halkalı'da M11'e geçişte indirim yoktur — iki hattın ücreti **toplanır**.
+- **Aktarma süresi:** yürüme payı 4 dk (tahmini) + ortalama bekleme (sefer
+  aralığı ÷ 2). Gerçek bekleme 0 ile sefer aralığı arasında değişir; ölçülmüş
+  peron-arası yürüme verisi yayımlanmadığı için bu kısım tahmindir.
 
 Gayriresmîdir; ücret ve saatler değişebilir.
