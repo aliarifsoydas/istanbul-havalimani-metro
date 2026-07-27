@@ -39,8 +39,12 @@ const S = [
   { name: "Halkalı", ilce: "Küçükçekmece", near: "Halkalı Marmaray / YHT Garı", km: 69.11, tH: 64, tG: 0, fH: "07:04", lH: "00:59", fG: "06:00", lG: "23:44", akt: "Marmaray, M1, YHT" },
 ];
 
-// --- Ücret kademeleri (İBB/UKOME 20.07.2026; istasyon sayısı = uçtan uca dahil)
-// 20.07.2026 zammı: tüm kalemlere düz %10 (önceki 16.02.2026 tarifesi üzerinden)
+// --- Ücret kademeleri (İBB/UKOME 20.07.2026) -------------------------------
+// Kademe parametresi GİDİLEN DURAK sayısıdır (= |i-j|), uçtan uca istasyon
+// sayısı DEĞİL. Resmî tarife 6 kademedir ve 13–14 durakta biter; uçtan uca
+// yolculuk 14 duraktır ("Tam Parkur Taşıma Ücreti"). Doğrulama: UKOME'nin
+// her istasyondan giriş ücreti tablosu bu modelle 15/15 tutuyor (dahil
+// sayımla yalnızca 7/15). 20.07.2026 zammı: tüm kalemlere düz %10.
 const FARE = [
   { maxN: 3, tam: 37.40, ogr: 18.13, sos: 26.58 },
   { maxN: 6, tam: 42.34, ogr: 20.80, sos: 30.45 },
@@ -48,7 +52,6 @@ const FARE = [
   { maxN: 10, tam: 53.74, ogr: 25.97, sos: 37.87 },
   { maxN: 12, tam: 59.90, ogr: 28.55, sos: 41.58 },
   { maxN: 14, tam: 66.39, ogr: 31.13, sos: 45.30 },
-  { maxN: 16, tam: 73.19, ogr: 33.72, sos: 49.01 },
 ];
 const FREE = [10, 11, 12, 13, 14]; // 31 Tem 2026'ya kadar biniş ücretsiz istasyonlar
 
@@ -60,18 +63,18 @@ function tripDir(i, j) { return j > i ? "Halkalı yönü" : "Gayrettepe yönü";
 
 // --- Sık aranan güzergâhlar (SEO) ------------------------------------------
 const POPULAR = [[0, 6], [14, 6], [1, 6], [0, 14]].map(([i, j]) => {
-  const n = Math.abs(i - j) + 1;
+  const n = Math.abs(i - j);   // gidilen durak sayısı
   return { i, j, time: tripTime(i, j), n, fare: fareFor(n).tam };
 });
 
 // --- SSS (hem görünür HTML hem JSON-LD için tek kaynak) --------------------
 const FAQ = [
   { q: "Gayrettepe'den İstanbul Havalimanı'na metro kaç dakika?",
-    a: "M11 ile Gayrettepe'den İstanbul Havalimanı'na yaklaşık 30 dakikada, 7 istasyonda ulaşılır. Tam ücret 47,89 TL'dir." },
+    a: "M11 ile Gayrettepe'den İstanbul Havalimanı'na yaklaşık 30 dakikada, 6 durak sonra ulaşılır. Tam ücret 42,34 TL'dir." },
   { q: "Halkalı'dan İstanbul Havalimanı'na kaç dakika?",
-    a: "Halkalı'dan İstanbul Havalimanı'na M11 ile yaklaşık 33 dakika sürer ve 9 istasyon geçilir. Tam ücret 53,74 TL'dir." },
+    a: "Halkalı'dan İstanbul Havalimanı'na M11 ile yaklaşık 33 dakika sürer ve 8 durak geçilir. Tam ücret 47,89 TL'dir." },
   { q: "M11 metro ücreti ne kadar? (2026)",
-    a: "20 Temmuz 2026 tarifesine göre ücret istasyon sayısına göre 37,40 TL ile 73,19 TL (tam) arasında değişir. Girişte en yüksek ücret alınır, çıkışta gidilmeyen mesafe iade edilir." },
+    a: "20 Temmuz 2026 tarifesine göre ücret gidilen durak sayısına göre 37,40 TL ile 66,39 TL (tam) arasında değişir. Girişte en yüksek ücret alınır, çıkışta gidilmeyen mesafe iade edilir." },
   { q: "M11 kaç dakikada bir geçiyor?",
     a: "Gündüz seferleri yaklaşık 15-20 dakikada birdir. Cuma ve Cumartesi geceleri 00:01-05:30 arasında 30 dakikada bir ek sefer yapılır; gece seferlerinde çift ücret uygulanır." },
   { q: "M11 ilk ve son sefer saatleri nedir?",
@@ -88,7 +91,7 @@ const opts = (sel) => S.map((s, i) => "<option value=\"" + i + "\"" + (i === sel
 const popularHTML = POPULAR.map(p =>
   "<button class=\"jump\" type=\"button\" data-from=\"" + p.i + "\" data-to=\"" + p.j + "\">" +
   "<span class=\"j-od\">" + S[p.i].name + "<i>→</i>" + S[p.j].name + "</span>" +
-  "<span class=\"j-meta\"><b>" + p.time + " dk</b><em>" + p.n + " istasyon</em><em>" + lira(p.fare) + "</em></span>" +
+  "<span class=\"j-meta\"><b>" + p.time + " dk</b><em>" + p.n + " durak</em><em>" + lira(p.fare) + "</em></span>" +
   "<span class=\"j-go\">→</span>" +
   "</button>"
 ).join("");
@@ -114,7 +117,7 @@ const stationRows = S.map((s, i) =>
 
 const fareRows = FARE.map((f, k) => {
   const lo = k === 0 ? 1 : FARE[k - 1].maxN + 1;
-  return "<tr><td>" + lo + "–" + f.maxN + " istasyon</td><td>" + lira(f.tam) + "</td><td>" + lira(f.ogr) + "</td><td>" + lira(f.sos) + "</td></tr>";
+  return "<tr><td>" + lo + "–" + f.maxN + " durak</td><td>" + lira(f.tam) + "</td><td>" + lira(f.ogr) + "</td><td>" + lira(f.sos) + "</td></tr>";
 }).join("");
 
 const faqHTML = FAQ.map(f =>
@@ -374,7 +377,7 @@ const HTML = `<!DOCTYPE html>
       <span class="kt">M11 Hattı · İstanbul Metrosu<b>İstanbul Havalimanı Metro Rehberi</b></span>
     </div>
     <h1>İki durak arası <em>kaç dakika,</em> kaç lira?</h1>
-    <p class="lede">Gayrettepe – İstanbul Havalimanı – Halkalı hattında yolculuğunu seç; süreyi, mesafeyi, istasyon sayısını ve güncel 2026 ücretini anında gör.</p>
+    <p class="lede">Gayrettepe – İstanbul Havalimanı – Halkalı hattında yolculuğunu seç; süreyi, mesafeyi, durak sayısını ve güncel 2026 ücretini anında gör.</p>
     <div class="facts"><span><b>69</b> km hat</span><span><b>15</b> istasyon</span><span><b>120</b> km/s</span><span>Güncel <b>2026</b> verisi</span></div>
   </header>
 
@@ -399,8 +402,8 @@ const HTML = `<!DOCTYPE html>
     </div>
     <div class="stats">
       <div class="stat"><span class="k">Mesafe</span><span class="v"><b id="dist">69,1</b> km</span></div>
-      <div class="stat"><span class="k">İstasyon</span><span class="v"><b id="stops">15</b></span></div>
-      <div class="stat fare"><span class="k">Ücret · tam</span><span class="v"><b id="fare">₺73,19</b></span><span class="sub" id="faresub"></span></div>
+      <div class="stat"><span class="k">Durak</span><span class="v"><b id="stops">14</b></span></div>
+      <div class="stat fare"><span class="k">Ücret · tam</span><span class="v"><b id="fare">₺66,39</b></span><span class="sub" id="faresub"></span></div>
     </div>
     <p class="note" id="note"></p>
   </div>
@@ -429,14 +432,14 @@ const HTML = `<!DOCTYPE html>
   </div>
 
   <h2>Ücret tarifesi · 20 Temmuz 2026</h2>
-  <p class="sub">İstasyon sayısına göre resmî İBB/UKOME kademeleri.</p>
+  <p class="sub">Gidilen durak sayısına göre resmî İBB/UKOME kademeleri.</p>
   <div class="tablewrap">
     <table>
       <thead><tr><th>Mesafe</th><th>Tam</th><th>Öğrenci</th><th>İndirimli (sosyal)</th></tr></thead>
       <tbody>${fareRows}</tbody>
     </table>
   </div>
-  <p class="fine">İstasyon sayısı uçtan uca (iki durak dahil) sayılır. Girişte en yüksek ücret alınır, çıkışta gidilmeyen mesafe karta iade edilir. Gece 00:30–05:30 seferlerinde çift ücret uygulanır.</p>
+  <p class="fine">Kademeler <b>gidilen durak</b> sayısına göredir (iki komşu istasyon arası = 1 durak); uçtan uca yolculuk 14 duraktır. Girişte en yüksek ücret alınır, çıkışta gidilmeyen mesafe karta iade edilir. Gece 00:30–05:30 seferlerinde çift ücret uygulanır.</p>
 
   <h2>Sıkça sorulan sorular</h2>
   <p class="sub">M11 hakkında en çok merak edilenler.</p>
@@ -512,12 +515,12 @@ const HTML = `<!DOCTYPE html>
 
   function calc(){
     var i = +fromEl.value, j = +toEl.value, a = ST[i], b = ST[j];
-    var dist = Math.abs(a.km - b.km), stations = Math.abs(i - j) + 1;
+    var dist = Math.abs(a.km - b.km), stops = Math.abs(i - j);   // gidilen durak sayısı
     var time = j > i ? (b.tH - a.tH) : (b.tG - a.tG);
     var dir = j > i ? "Halkalı yönü" : (j < i ? "Gayrettepe yönü" : "—");
     $("route").innerHTML = a.n + ' <span class="arr">→</span> ' + b.n;
     $("dist").textContent = dist.toFixed(1).replace(".", ",");
-    $("stops").textContent = i === j ? "0" : stations;
+    $("stops").textContent = stops;
     $("dir").textContent = dir;
     var fare = $("fare"), sub = $("faresub"), note = $("note");
     paintRail();
@@ -527,7 +530,7 @@ const HTML = `<!DOCTYPE html>
     if(campaign && FREE.indexOf(i) !== -1){
       fare.textContent = "Ücretsiz"; sub.textContent = "31 Tem 2026'ya kadar biniş bedava";
     } else {
-      var f = fareFor(stations);
+      var f = fareFor(stops);
       fare.textContent = lira(f.tam);
       sub.textContent = "Öğr. " + lira(f.ogr) + " · Sosyal " + lira(f.sos);
     }
