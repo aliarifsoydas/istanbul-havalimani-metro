@@ -40,8 +40,22 @@ seferleri modellenmez.
 
 ### Aktarma
 Aktarma noktaları istasyon koordinatlarından 400 m eşiğiyle bulundu (32 aktarma
-yeri). Aktarma süresi = yürüme (mesafeden, 80 m/dk) + ortalama bekleme (sefer
-aralığı ÷ 2). Gerçek bekleme 0 ile sefer aralığı arasında değişir.
+yeri). Aktarma süresi = **yürüme + bekleme**.
+
+Yürüme yatay ve dikey bileşenden oluşur:
+
+    dk = max(taban, yatay_metre / 80 + kat_sayısı × kat_süresi)
+    kat_süresi = 0,8 dk (yürüyen merdiven varsa) · 1,3 dk (yoksa)
+    taban      = 3 dk (2+ kat) · 2 dk (yüzey)
+
+- **kat_sayısı**: OpenStreetMap'teki `level`/`layer` etiketlerinden (32 aktarmanın
+  28'inde mevcut; peron, merdiven ve asansör nesneleri taranır).
+- **yürüyen merdiven**: OSM `conveying=yes` merdivenleri veya İBB API'sindeki
+  `Escolator` sayısı ≥ 4.
+- M1A ↔ M1B aynı peronu paylaştığı için sabit 2 dk.
+
+Örnek: Mecidiyeköy 5 kat → 7–8 dk · Zincirlikuyu 5 kat → 5–9 dk ·
+Halkalı 2 kat + 209 m → 4 dk · Ayrılık Çeşmesi 2 kat, bitişik → 3 dk.
 
 ---
 
