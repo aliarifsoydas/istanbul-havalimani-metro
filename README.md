@@ -1,4 +1,28 @@
-# İstanbul Raylı Sistem Hesaplayıcı — M11 & Marmaray
+# İstanbul Metro · Marmaray · Metrobüs — Yolculuk Planlayıcı
+
+**`/` = ağ planlayıcı.** 13 hat, 265 istasyon, 227 yer. Nereden–nereye ve kalkış
+saatini seç; varış saatini, aktarmaları ve toplam ücreti dakika dakika verir.
+Google Maps'ten farkı: sadece raylı sistem + metrobüs (sade), buna karşılık
+**ücreti doğru hesaplar** — mesafe bazlı hatlarda kademeli tarife, metrolarda
+İstanbulkart aktarma indirimi.
+
+Hatlar: M1A, M1B, M2, M3, M4, M5, M6, M7, M8, M9, M11, Marmaray, Metrobüs.
+
+### Süre verisinin kaynağı hatta göre değişir
+- **M11 ve Marmaray** — TCDD'nin yayımladığı gerçek tarifeden istasyon istasyon
+  türetildi (son tren, uçtan uca giden tek trenin geçiş saatleri).
+- **Metro ve Metrobüs** — istasyon bazlı tarife yayımlanmadığı için hat toplam
+  süresi mesafeye orantılı dağıtıldı. Arayüzde `tahmini` etiketiyle gösterilir.
+  Metrobüs'te köprü trafiği modellenmez; gerçek süre sapabilir.
+
+### Aktarma
+Aktarma noktaları istasyon koordinatlarından 400 m eşiğiyle bulundu (32 aktarma
+yeri). Aktarma süresi = yürüme (mesafeden, 80 m/dk) + ortalama bekleme (sefer
+aralığı ÷ 2). Gerçek bekleme 0 ile sefer aralığı arasında değişir.
+
+---
+
+## Hat rehberi sayfaları — M11 & Marmaray
 
 M11 ve Marmaray'ın **57 istasyonu arasında** süre, mesafe, durak sayısı, aktarma ve
 güncel 2026 ücretini hesaplayan bağımlılıksız statik site. Cloudflare Pages ile yayınlanır.
@@ -9,7 +33,7 @@ eklenir. Örnek: *İstanbul Havalimanı → Üsküdar* = 85 dk, 22 durak, ₺95,
 
 | Sayfa | Odak | İstasyon |
 |---|---|---|
-| `/` | **M11** — Gayrettepe · İstanbul Havalimanı · Halkalı | 15 |
+| `/m11` | **M11** — Gayrettepe · İstanbul Havalimanı · Halkalı | 15 |
 | `/marmaray` | **Marmaray B1** — Halkalı · Yenikapı · Söğütlüçeşme · Gebze | 43 |
 
 İki sayfa da aynı ağ genelinde hesaplayıcıyı taşır; farkları başlık, durak/ücret
@@ -19,15 +43,15 @@ tablosu ve SSS içeriğidir (her sayfa kendi hattının aramalarını hedefler).
 - `worker.js` — **tek kaynak.** Hat verisi, ücret kademeleri, sayfa şablonu ve
   istemci JS'i burada. Cloudflare Worker biçiminde; `export default { fetch }`.
 - `build.mjs` — `worker.js`'ten statik dosyaları üretir
-- `index.html`, `marmaray/index.html` — üretilmiş sayfalar (tüm CSS/JS gömülü)
+- `index.html`, `m11/index.html`, `marmaray/index.html` — üretilmiş sayfalar
 - `robots.txt`, `sitemap.xml` — üretilmiş SEO dosyaları
 
-`index.html` ve `marmaray/index.html` **elle düzenlenmemeli** — `worker.js` değişip
+Üretilmiş HTML dosyaları **elle düzenlenmemeli** — `worker.js` değişip
 `build.mjs` çalıştırılmalı, yoksa iki kopya birbirinden ayrışır.
 
 ## Güncelleme
 ```bash
-node build.mjs      # index.html, marmaray/index.html, robots.txt, sitemap.xml
+node build.mjs      # tüm sayfalar + robots.txt + sitemap.xml
 ```
 
 Yeni hat eklemek için `worker.js` içindeki `LINES` nesnesine bir giriş ve

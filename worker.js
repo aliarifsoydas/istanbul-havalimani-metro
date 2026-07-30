@@ -162,7 +162,7 @@ const B1_FAQ = [
 // --- Hatlar -----------------------------------------------------------------
 const LINES = {
   m11: {
-    id: "m11", code: "M11", path: "/", stations: M11_STATIONS, fares: M11_FARE, free: M11_FREE,
+    id: "m11", code: "M11", path: "/m11", stations: M11_STATIONS, fares: M11_FARE, free: M11_FREE,
     dirTo: "Halkalı yönü", dirFrom: "Gayrettepe yönü",
     title: "İstanbul Havalimanı Metrosu M11 — Süre, Ücret ve Sefer Saatleri 2026 · Gayrettepe · Halkalı",
     desc: "İstanbul Havalimanı metrosu (M11) ile iki istasyon arası kaç dakika, kaç TL? Marmaray aktarmalı rotalar dahil: Havalimanı – Üsküdar, Havalimanı – Söğütlüçeşme. Güncel 2026 süreler, sefer saatleri ve resmî ücret tarifesi.",
@@ -227,112 +227,30 @@ function planRoute(aId, bId) {
 // --- Yardımcılar (sunucu tarafı: SEO içerikleri önceden hesaplamak için) ----
 function lira(v) { return "₺" + v.toFixed(2).replace(".", ","); }
 
-// --- Sayfa üretici: tek hat -------------------------------------------------
-function buildPage(L) {
-const S = L.stations, FARE = L.fares, FREE = L.free;
-const LAST = S.length - 1;
-const other = LINES[OTHER[L.id]];
-function fareFor(n) { for (const f of FARE) if (n <= f.maxN) return f; return FARE[FARE.length - 1]; }
-function tripTime(i, j) { return j > i ? (S[j].tH - S[i].tH) : (S[j].tG - S[i].tG); }
 
-// --- Sık aranan güzergâhlar (SEO) ------------------------------------------
-const POPULAR = L.popular.map(([a, b]) => ({ a, b, ...planRoute(a, b) }));
+// ===========================================================================
+// AĞ PLANLAYICI  —  metro + Marmaray + Metrobüs, saat girişli
+// ---------------------------------------------------------------------------
+// Veri: İBB Metro İstanbul API (istasyon + koordinat), TCDD tarifeleri (M11 ve
+// Marmaray gerçek son-tren tarifesinden), marmaray.istanbul (ücret kademeleri,
+// istasyon adları). Aktarmalar istasyon koordinatlarından 400 m eşiğiyle
+// bulundu; yürüme süresi mesafeden (80 m/dk) hesaplandı.
+//
+// SÜRE VERİSİNİN KAYNAĞI HATTA GÖRE DEĞİŞİR:
+//   M11 & Marmaray  → gerçek tarifeden türetilmiş (istasyon istasyon)
+//   metro & metrobüs → hat toplam süresinin mesafeye orantılı dağıtımı (TAHMİN)
+// Bu ayrım arayüzde de belirtilir; uydurulmuş kesinlik iddiası yoktur.
+const NETWORK = {"L":{"M1A":{"n":["Yenikapı","Aksaray","Emniyet – Fatih","Topkapı – Ulubatlı","Bayrampaşa – Maltepe","Sağmalcılar","Kocatepe","Otogar","Terazidere","Davutpaşa – YTÜ","Merter","Zeytinburnu","Bakırköy – İncirli","Bahçelievler","Ataköy – Şirinevler","Yenibosna","DTM – Fuar Merkezi","Atatürk Havalimanı"],"km":[0.0,0.95,1.95,3.05,4.55,5.95,7.34,8.33,9.52,10.68,12.25,13.16,14.56,15.67,17.25,18.12,18.91,19.98],"t":[0,1,2,4,6,7,9,10,12,13,15,16,18,20,22,23,24,25],"h":6,"f":"05:50","l":"00:00","k":"metro","c":"#e11b22"},"M1B":{"n":["Yenikapı","Aksaray","Emniyet – Fatih","Topkapı – Ulubatlı","Bayrampaşa – Maltepe","Sağmalcılar","Kocatepe","Otogar","Esenler","Menderes","Üçyüzlü","Bağcılar Meydan","Kirazlı"],"km":[0.0,0.95,1.95,3.05,4.55,5.95,7.34,8.33,8.94,10.01,11.01,12.32,13.54],"t":[0,2,5,8,12,15,19,22,23,26,28,32,35],"h":6,"f":"06:00","l":"00:03","k":"metro","c":"#e11b22"},"M2":{"n":["Yenikapı","Vezneciler","Haliç","Şişhane","Taksim","Osmanbey","Mecidiyeköy","Gayrettepe","Levent","4. Levent","Sanayi Mahallesi","Seyrantepe","İTÜ – Ayazağa","Atatürk Oto Sanayi","Darüşşafaka","Hacıosman"],"km":[0.0,1.08,2.47,3.37,5.03,6.74,8.18,9.89,10.84,12.07,13.07,14.09,16.31,17.54,18.88,20.17],"t":[0,2,4,5,8,11,13,16,17,19,21,22,26,28,30,32],"h":6,"f":"05:57","l":"00:00","k":"metro","c":"#00a04b"},"M3":{"n":["Bakırköy Sahil","Özgürlük Meydanı","İncirli","Haznedar","İlkyuva","Yıldıztepe","Molla Gürani","Kirazlı","Yenimahalle","Mahmutbey","İSTOÇ","İkitelli Sanayi","Turgut Özal","Siteler","Başak Konutları","Başakşehir-Metrokent","Onurkent","Şehir Hastanesi","Toplu Konutlar","Kayaşehir Merkez"],"km":[0.0,1.08,2.93,4.06,4.8,6.06,7.08,8.01,9.14,10.91,12.17,14.45,15.57,16.4,17.61,19.09,20.3,21.92,22.93,24.41],"t":[0,2,5,7,9,11,13,15,17,20,22,27,29,30,32,35,37,40,42,45],"h":6,"f":"06:00","l":"00:00","k":"metro","c":"#00adef"},"M4":{"n":["Kadıköy","Ayrılık Çeşmesi","Acıbadem","Ünalan","Göztepe","Yenisahra","Pegasus-Kozyatağı","Bostancı","Küçükyalı","Maltepe","Huzurevi","Gülsuyu","Esenkent[2]","Hastane – Adliye","Soğanlık","Kartal","Yakacık-Adnan Kahveci","Pendik","Tavşantepe","Fevzi Çakmak-Hastane","Yayalar – Şeyhli","Kurtköy","Sabiha Gökçen Havalimanı"],"km":[0.0,1.34,2.64,4.23,5.16,7.2,8.65,9.92,12.49,14.33,15.51,16.63,17.58,18.77,20.12,21.89,23.74,25.14,26.31,27.77,29.94,31.97,33.29],"t":[0,2,4,7,8,11,14,15,20,22,24,26,27,29,31,34,37,39,41,43,47,50,52],"h":6,"f":"06:00","l":"23:59","k":"metro","c":"#e56db1"},"M5":{"n":["Üsküdar","Fıstıkağacı","Bağlarbaşı","Altunizade","Kısıklı","Bulgurlu","Ümraniye","Çarşı","Yamanevler","Çakmak","Ihlamurkuyu","Altınşehir","İmam Hatip Lisesi","Dudullu","Necip Fazıl","Çekmeköy","Meclis","Sarıgazi","Sancaktepe Şehir Hastanesi","Sancaktepe","Samandıra Merkez","Veysel Karani","Hasanpaşa","Sultanbeyli"],"km":[0.0,1.24,2.23,3.11,4.66,6.05,7.31,8.41,9.47,10.36,11.54,12.26,13.49,14.39,15.89,16.81,17.82,19.01,20.04,21.74,22.64,22.64,22.64,22.64],"t":[0,2,4,6,9,11,14,16,18,19,21,23,25,27,29,31,33,35,37,40,42,42,42,42],"h":6,"f":"06:00","l":"00:01","k":"metro","c":"#8e4b9e"},"M6":{"n":["Levent","Nispetiye","Etiler","Hisarustu-Bogazici Universitesi"],"km":[0.0,0.76,2.22,3.0],"t":[0,2,5,7],"h":6,"f":"06:00","l":"23:59","k":"metro","c":"#c9a227"},"M7":{"n":["Yıldız","Fulya","Mecidiyeköy","Çağlayan","Kâğıthane","Nurtepe","Alibeyköy","Çırçır","Veysel Karani – Akşemsettin","Yeşilpınar","Kâzım Karabekir","Yenimahalle","Karadeniz Mahallesi","Giyimkent – Tekstilkent","Oruç Reis","Göztepe Mahallesi","Mahmutbey"],"km":[0.0,0.8,2.03,3.47,4.7,5.53,6.74,7.78,8.5,9.01,11.47,12.85,14.45,15.88,17.26,18.21,19.95],"t":[0,1,4,6,9,10,13,14,16,17,21,24,27,29,32,34,37],"h":6,"f":"00:25","l":"23:59","k":"metro","c":"#e2338a"},"M8":{"n":["Bostancı","Emin Ali Paşa","Ayşekadın","Kozyatağı","Küçükbakkalköy","İçerenköy","Kayışdağı","Mevlana","İmes","Modoko-Keyap","Dudullu","Huzur","Parseller"],"km":[0.0,1.13,2.09,3.55,4.81,6.12,7.33,8.98,9.91,10.96,11.9,12.76,14.02],"t":[0,2,4,7,9,11,14,17,18,20,22,24,26],"h":6,"f":"06:00","l":"00:00","k":"metro","c":"#8d6e3a"},"M9":{"n":["Ataköy","Yenibosna","Çobançeşme","29 Ekim – Cumhuriyet","Doğu Sanayi","Mimar Sinan","15 Temmuz","Halkalı Caddesi","Atatürk Mahallesi","Bahariye","Masko","İkitelli Sanayi","Ziya Gökalp Mahallesi","Olimpiyat"],"km":[0.0,1.98,3.8,4.65,5.67,6.88,8.28,9.52,10.62,11.31,12.11,12.96,14.53,16.23],"t":[0,4,7,9,10,13,15,18,20,21,22,24,27,30],"h":6,"f":"06:00","l":"00:00","k":"metro","c":"#f5a01d"},"M11":{"n":["Gayrettepe","Kâğıthane","Hasdal","Kemerburgaz","Göktürk","İhsaniye","İstanbul Havalimanı","Kargo Terminali","Taşoluk","Arnavutköy Hastane","İbn Haldun Üniversitesi","Kayaşehir","Olimpiyatköy","Halkalı Stadı","Halkalı"],"km":[0,3.94,9.43,15.03,18.16,28.11,34.1,36.61,43.01,47.34,54.24,58.05,62.48,64.95,69.11],"t":[0,4,9,13,17,24,30,34,39,43,49,52,57,60,64],"h":15,"f":"05:55","l":"23:55","k":"tcdd","c":"#00a3a3","fare":[[3,37.4,18.13,26.58],[6,42.34,20.8,30.45],[8,47.89,23.39,34.16],[10,53.74,25.97,37.87],[12,59.9,28.55,41.58],[14,66.39,31.13,45.3]]},"Marmaray":{"n":["Halkalı","Mustafa Kemal","Küçükçekmece","Florya","Florya Akvaryum","Yeşilköy","Yeşilyurt","Ataköy","Bakırköy","Yenimahalle","Zeytinburnu-Fişekhane","Kazlıçeşme","Yenikapı","Sirkeci","Üsküdar","Ayrılık Çeşmesi","Söğütlüçeşme","Feneryolu","Göztepe","Erenköy","Suadiye","Bostancı","Küçükyalı","İdealtepe","Süreyya Plajı","Maltepe","Cevizli","Atalar","Başak","Kartal","Yunus","Pendik","Kaynarca","Tersane","Güzelyalı","Aydıntepe","İçmeler","Tuzla","Çayırova","GTÜ-Fatih","Osmangazi","Darıca","Gebze"],"km":[0,1.59,3.65,5.92,6.95,9.51,10.64,13.08,14.54,15.32,17.55,18.86,22.27,24.74,28.35,31.68,32.96,34.7,35.94,37.46,38.95,40.1,41.58,42.75,44.33,45.45,47.75,49.63,50.81,52.05,53.83,55.79,58.2,60.16,61.21,62.23,63.22,65.92,69.13,70.65,72.42,73.8,75.77],"t":[0,3,5,8,10,13,15,18,21,23,26,28,32,35,39,43,46,48,50,52,55,57,60,62,64,66,69,71,73,75,78,81,84,86,88,90,92,95,98,101,103,105,107],"h":15,"f":"05:58","l":"23:28","k":"tcdd","c":"#0a5c9e","fare":[[7,37.4,18.13,26.58],[14,47.74,22.32,32.92],[21,55.11,26.58,38.72],[28,63.56,30.23,45.08],[35,74.24,35.53,53.02],[43,82.17,37.13,57.29]]},"Metrobüs":{"n":["Beylikdüzü Son Durak","Beykent","Cumhuriyet Mahallesi","Beylikdüzü Belediye","Beylikdüzü","Güzelyurt","Haramidere","Haramidere Sanayi","Saadetdere Mahallesi","Mustafa Kemal Paşa","Cihangir Üniv. Mah.","Avcılar (İÜ Kampüsü)","Şükrübey","İBB Sosyal Tesisler","Küçükçekmece","Cennet Mahallesi","Florya","Beşyol","Sefaköy","Yenibosna","Şirinevler","Bahçelievler","İncirli","Zeytinburnu","Merter","Cevizlibağ","Topkapı","Bayrampaşa – Maltepe","Adnan Menderes Blv.","Edirnekapı","Ayvansaray","Halıcıoğlu","Okmeydanı","Darülaceze – Perpa","Okmeydanı Hastane","Çağlayan","Mecidiyeköy","Zincirlikuyu","Boğaziçi Köprüsü","Burhaniye","Altunizade","Acıbadem","Uzunçayır","Fikirtepe","Söğütlüçeşme"],"km":[0.0,0.0,1.01,1.82,2.56,3.37,4.07,5.17,6.05,7.36,8.31,9.27,10.22,11.95,13.68,14.84,15.39,16.46,17.05,20.35,21.36,23.0,23.84,25.08,26.32,27.88,28.53,29.19,29.84,30.49,31.69,32.89,34.5,35.4,36.3,36.74,37.64,39.6,42.11,44.62,45.86,46.9,48.78,49.85,50.72],"t":[0,0,2,4,5,7,8,10,12,15,17,18,20,24,27,30,31,33,34,41,43,46,47,50,52,56,57,58,59,61,63,65,69,70,72,73,75,79,84,89,91,93,97,99,101],"h":2,"f":"06:00","l":"23:59","k":"metrobus","c":"#c62828","fare":[[1,33.08,14.58,20.47],[2,39.57,15.87,24.46],[3,46.2,18.48,28.35],[9,52.81,21.09,33.08],[15,58.0,22.55,33.54],[21,60.69,22.55,35.66],[27,62.67,22.55,35.66],[33,64.03,22.55,37.61],[43,68.59,22.55,37.61]]}},"X":[["M1A",0,"M1B",0,2],["M1A",0,"M2",0,2],["M1A",0,"Marmaray",12,2],["M1A",1,"M1B",1,2],["M1A",2,"M1B",2,2],["M1A",3,"M1B",3,2],["M1A",4,"M1B",4,2],["M1A",5,"M1B",5,2],["M1A",6,"M1B",6,2],["M1A",7,"M1B",7,2],["M1A",10,"Metrobüs",24,2],["M1A",12,"M3",2,2],["M1A",12,"Metrobüs",22,3],["M1A",13,"Metrobüs",21,2],["M1A",14,"Metrobüs",20,2],["M1A",15,"M9",1,2],["M1A",15,"Metrobüs",19,5],["M1B",0,"M2",0,2],["M1B",0,"Marmaray",12,2],["M1B",12,"M3",7,2],["M2",0,"Marmaray",12,2],["M2",6,"M7",2,3],["M2",6,"Metrobüs",36,4],["M2",7,"M11",0,3],["M2",7,"Metrobüs",37,5],["M2",8,"M6",0,2],["M3",1,"Marmaray",8,3],["M3",2,"Metrobüs",22,3],["M3",9,"M7",16,2],["M3",11,"M9",11,2],["M3",19,"M11",11,4],["M4",1,"Marmaray",15,2],["M4",6,"M8",3,2],["M5",0,"Marmaray",14,2],["M5",3,"Metrobüs",40,4],["M5",13,"M8",10,2],["M7",2,"Metrobüs",36,4],["M7",4,"M11",1,4],["M9",0,"Marmaray",7,2],["M9",13,"M11",12,2],["M11",0,"Metrobüs",37,2],["M11",14,"Marmaray",0,3],["Marmaray",2,"Metrobüs",14,5],["Marmaray",16,"Metrobüs",44,2]],"P":[{"n":"Arnavutköy Hastane","m":[["M11",9]]},{"n":"Zincirlikuyu","m":[["M2",7],["M11",0],["Metrobüs",37]]},{"n":"Göktürk","m":[["M11",4]]},{"n":"Halkalı","m":[["M11",14],["Marmaray",0]]},{"n":"Halkalı Stadı","m":[["M11",13]]},{"n":"Hasdal","m":[["M11",2]]},{"n":"Kâğıthane","m":[["M7",4],["M11",1]]},{"n":"Kargo Terminali","m":[["M11",7]]},{"n":"Kayaşehir Merkez","m":[["M3",19],["M11",11]]},{"n":"Kemerburgaz","m":[["M11",3]]},{"n":"Olimpiyatköy","m":[["M9",13],["M11",12]]},{"n":"Taşoluk","m":[["M11",8]]},{"n":"İbn Haldun Üniversitesi","m":[["M11",10]]},{"n":"İhsaniye","m":[["M11",5]]},{"n":"İstanbul Havalimanı","m":[["M11",6]]},{"n":"Aksaray","m":[["M1A",1],["M1B",1]]},{"n":"Atatürk Havalimanı","m":[["M1A",17]]},{"n":"Bahçelievler","m":[["M1A",13],["Metrobüs",21]]},{"n":"Bakırköy – İncirli","m":[["M1A",12],["M3",2],["Metrobüs",22]]},{"n":"Bayrampaşa – Maltepe","m":[["M1A",4],["M1B",4]]},{"n":"Davutpaşa – YTÜ","m":[["M1A",9]]},{"n":"DTM – Fuar Merkezi","m":[["M1A",16]]},{"n":"Emniyet – Fatih","m":[["M1A",2],["M1B",2]]},{"n":"Kocatepe","m":[["M1A",6],["M1B",6]]},{"n":"Merter","m":[["M1A",10],["Metrobüs",24]]},{"n":"Otogar","m":[["M1A",7],["M1B",7]]},{"n":"Sağmalcılar","m":[["M1A",5],["M1B",5]]},{"n":"Terazidere","m":[["M1A",8]]},{"n":"Topkapı – Ulubatlı","m":[["M1A",3],["M1B",3]]},{"n":"Yenibosna","m":[["M1A",15],["M9",1],["Metrobüs",19]]},{"n":"Yenikapı","m":[["M1A",0],["M1B",0],["M2",0],["Marmaray",12]]},{"n":"Zeytinburnu","m":[["M1A",11]]},{"n":"Ataköy – Şirinevler","m":[["M1A",14],["Metrobüs",20]]},{"n":"Bağcılar Meydan","m":[["M1B",11]]},{"n":"Esenler","m":[["M1B",8]]},{"n":"Kirazlı","m":[["M1B",12],["M3",7]]},{"n":"Menderes","m":[["M1B",9]]},{"n":"Üçyüzlü","m":[["M1B",10]]},{"n":"4. Levent","m":[["M2",9]]},{"n":"Atatürk Oto Sanayi","m":[["M2",13]]},{"n":"Darüşşafaka","m":[["M2",14]]},{"n":"Hacıosman","m":[["M2",15]]},{"n":"Haliç","m":[["M2",2]]},{"n":"İTÜ – Ayazağa","m":[["M2",12]]},{"n":"Levent","m":[["M2",8],["M6",0]]},{"n":"Osmanbey","m":[["M2",5]]},{"n":"Sanayi Mahallesi","m":[["M2",10]]},{"n":"Seyrantepe","m":[["M2",11]]},{"n":"Şişhane","m":[["M2",3]]},{"n":"Mecidiyeköy","m":[["M2",6],["M7",2],["Metrobüs",36]]},{"n":"Taksim","m":[["M2",4]]},{"n":"Vezneciler","m":[["M2",1]]},{"n":"Bakırköy Sahil","m":[["M3",0]]},{"n":"Başak Konutları","m":[["M3",14]]},{"n":"Haznedar","m":[["M3",3]]},{"n":"İkitelli Sanayi","m":[["M3",11],["M9",11]]},{"n":"İlkyuva","m":[["M3",4]]},{"n":"İSTOÇ","m":[["M3",10]]},{"n":"Mahmutbey","m":[["M3",9],["M7",16]]},{"n":"Başakşehir-Metrokent","m":[["M3",15]]},{"n":"Molla Gürani","m":[["M3",6]]},{"n":"Onurkent","m":[["M3",16]]},{"n":"Özgürlük Meydanı","m":[["M3",1],["Marmaray",8]]},{"n":"Şehir Hastanesi","m":[["M3",17]]},{"n":"Siteler","m":[["M3",13]]},{"n":"Toplu Konutlar","m":[["M3",18]]},{"n":"Turgut Özal","m":[["M3",12]]},{"n":"Yenimahalle","m":[["M3",8]]},{"n":"Yıldıztepe","m":[["M3",5]]},{"n":"Acıbadem","m":[["M4",2]]},{"n":"Ayrılık Çeşmesi","m":[["M4",1],["Marmaray",15]]},{"n":"Bostancı","m":[["M4",7]]},{"n":"Esenkent[2]","m":[["M4",12]]},{"n":"Fevzi Çakmak-Hastane","m":[["M4",19]]},{"n":"Göztepe","m":[["M4",4]]},{"n":"Gülsuyu","m":[["M4",11]]},{"n":"Hastane – Adliye","m":[["M4",13]]},{"n":"Huzurevi","m":[["M4",10]]},{"n":"Kadıköy","m":[["M4",0]]},{"n":"Kartal","m":[["M4",15]]},{"n":"Pegasus-Kozyatağı","m":[["M4",6],["M8",3]]},{"n":"Küçükyalı","m":[["M4",8]]},{"n":"Kurtköy","m":[["M4",21]]},{"n":"Maltepe","m":[["M4",9]]},{"n":"Pendik","m":[["M4",17]]},{"n":"Sabiha Gökçen Havalimanı","m":[["M4",22]]},{"n":"Soğanlık","m":[["M4",14]]},{"n":"Tavşantepe","m":[["M4",18]]},{"n":"Ünalan","m":[["M4",3]]},{"n":"Yakacık-Adnan Kahveci","m":[["M4",16]]},{"n":"Yayalar – Şeyhli","m":[["M4",20]]},{"n":"Yenisahra","m":[["M4",5]]},{"n":"Altınşehir","m":[["M5",11]]},{"n":"Altunizade","m":[["M5",3],["Metrobüs",40]]},{"n":"Bağlarbaşı","m":[["M5",2]]},{"n":"Bulgurlu","m":[["M5",5]]},{"n":"Çakmak","m":[["M5",9]]},{"n":"Çarşı","m":[["M5",7]]},{"n":"Çekmeköy","m":[["M5",15]]},{"n":"Dudullu","m":[["M5",13],["M8",10]]},{"n":"Fıstıkağacı","m":[["M5",1]]},{"n":"Hasanpaşa","m":[["M5",22]]},{"n":"Ihlamurkuyu","m":[["M5",10]]},{"n":"İmam Hatip Lisesi","m":[["M5",12]]},{"n":"Kısıklı","m":[["M5",4]]},{"n":"Meclis","m":[["M5",16]]},{"n":"Necip Fazıl","m":[["M5",14]]},{"n":"Samandıra Merkez","m":[["M5",20]]},{"n":"Sancaktepe","m":[["M5",19]]},{"n":"Sancaktepe Şehir Hastanesi","m":[["M5",18]]},{"n":"Sarıgazi","m":[["M5",17]]},{"n":"Sultanbeyli","m":[["M5",23]]},{"n":"Ümraniye","m":[["M5",6]]},{"n":"Üsküdar","m":[["M5",0],["Marmaray",14]]},{"n":"Veysel Karani","m":[["M5",21]]},{"n":"Yamanevler","m":[["M5",8]]},{"n":"Etiler","m":[["M6",2]]},{"n":"Hisarustu-Bogazici Universitesi","m":[["M6",3]]},{"n":"Nispetiye","m":[["M6",1]]},{"n":"Alibeyköy","m":[["M7",6]]},{"n":"Çağlayan","m":[["M7",3]]},{"n":"Çırçır","m":[["M7",7]]},{"n":"Fulya","m":[["M7",1]]},{"n":"Göztepe Mahallesi","m":[["M7",15]]},{"n":"Karadeniz Mahallesi","m":[["M7",12]]},{"n":"Kâzım Karabekir","m":[["M7",10]]},{"n":"Nurtepe","m":[["M7",5]]},{"n":"Oruç Reis","m":[["M7",14]]},{"n":"Giyimkent – Tekstilkent","m":[["M7",13]]},{"n":"Veysel Karani – Akşemsettin","m":[["M7",8]]},{"n":"Yenimahalle","m":[["M7",11]]},{"n":"Yeşilpınar","m":[["M7",9]]},{"n":"Yıldız","m":[["M7",0]]},{"n":"Ayşekadın","m":[["M8",2]]},{"n":"Bostancı","m":[["M8",0]]},{"n":"Emin Ali Paşa","m":[["M8",1]]},{"n":"Huzur","m":[["M8",11]]},{"n":"İçerenköy","m":[["M8",5]]},{"n":"İmes","m":[["M8",8]]},{"n":"Kayışdağı","m":[["M8",6]]},{"n":"Küçükbakkalköy","m":[["M8",4]]},{"n":"Mevlana","m":[["M8",7]]},{"n":"Modoko-Keyap","m":[["M8",9]]},{"n":"Parseller","m":[["M8",12]]},{"n":"15 Temmuz","m":[["M9",6]]},{"n":"29 Ekim – Cumhuriyet","m":[["M9",3]]},{"n":"Ataköy","m":[["M9",0],["Marmaray",7]]},{"n":"Atatürk Mahallesi","m":[["M9",8]]},{"n":"Bahariye","m":[["M9",9]]},{"n":"Çobançeşme","m":[["M9",2]]},{"n":"Doğu Sanayi","m":[["M9",4]]},{"n":"Halkalı Caddesi","m":[["M9",7]]},{"n":"Masko","m":[["M9",10]]},{"n":"Mimar Sinan","m":[["M9",5]]},{"n":"Ziya Gökalp Mahallesi","m":[["M9",12]]},{"n":"Atalar","m":[["Marmaray",27]]},{"n":"Aydıntepe","m":[["Marmaray",35]]},{"n":"Başak","m":[["Marmaray",28]]},{"n":"Bostancı","m":[["Marmaray",21]]},{"n":"Cevizli","m":[["Marmaray",26]]},{"n":"Darıca","m":[["Marmaray",41]]},{"n":"Erenköy","m":[["Marmaray",19]]},{"n":"Feneryolu","m":[["Marmaray",17]]},{"n":"Florya","m":[["Marmaray",3]]},{"n":"Florya Akvaryum","m":[["Marmaray",4]]},{"n":"GTÜ-Fatih","m":[["Marmaray",39]]},{"n":"Gebze","m":[["Marmaray",42]]},{"n":"Göztepe","m":[["Marmaray",18]]},{"n":"Güzelyalı","m":[["Marmaray",34]]},{"n":"Kartal","m":[["Marmaray",29]]},{"n":"Kaynarca","m":[["Marmaray",32]]},{"n":"Kazlıçeşme","m":[["Marmaray",11]]},{"n":"Küçükyalı","m":[["Marmaray",22]]},{"n":"Küçükçekmece","m":[["Marmaray",2],["Metrobüs",14]]},{"n":"Maltepe","m":[["Marmaray",25]]},{"n":"Mustafa Kemal","m":[["Marmaray",1]]},{"n":"Osmangazi","m":[["Marmaray",40]]},{"n":"Pendik","m":[["Marmaray",31]]},{"n":"Sirkeci","m":[["Marmaray",13]]},{"n":"Suadiye","m":[["Marmaray",20]]},{"n":"Söğütlüçeşme","m":[["Marmaray",16],["Metrobüs",44]]},{"n":"Süreyya Plajı","m":[["Marmaray",24]]},{"n":"Tersane","m":[["Marmaray",33]]},{"n":"Tuzla","m":[["Marmaray",37]]},{"n":"Yenimahalle","m":[["Marmaray",9]]},{"n":"Yeşilköy","m":[["Marmaray",5]]},{"n":"Yeşilyurt","m":[["Marmaray",6]]},{"n":"Yunus","m":[["Marmaray",30]]},{"n":"Zeytinburnu-Fişekhane","m":[["Marmaray",10]]},{"n":"Çayırova","m":[["Marmaray",38]]},{"n":"İdealtepe","m":[["Marmaray",23]]},{"n":"İçmeler","m":[["Marmaray",36]]},{"n":"Acıbadem","m":[["Metrobüs",41]]},{"n":"Adnan Menderes Blv.","m":[["Metrobüs",28]]},{"n":"Avcılar (İÜ Kampüsü)","m":[["Metrobüs",11]]},{"n":"Ayvansaray","m":[["Metrobüs",30]]},{"n":"Bayrampaşa – Maltepe","m":[["Metrobüs",27]]},{"n":"Beykent","m":[["Metrobüs",1]]},{"n":"Beylikdüzü","m":[["Metrobüs",4]]},{"n":"Beylikdüzü Belediye","m":[["Metrobüs",3]]},{"n":"Beylikdüzü Son Durak","m":[["Metrobüs",0]]},{"n":"Beşyol","m":[["Metrobüs",17]]},{"n":"Boğaziçi Köprüsü","m":[["Metrobüs",38]]},{"n":"Burhaniye","m":[["Metrobüs",39]]},{"n":"Cennet Mahallesi","m":[["Metrobüs",15]]},{"n":"Cevizlibağ","m":[["Metrobüs",25]]},{"n":"Cihangir Üniv. Mah.","m":[["Metrobüs",10]]},{"n":"Cumhuriyet Mahallesi","m":[["Metrobüs",2]]},{"n":"Darülaceze – Perpa","m":[["Metrobüs",33]]},{"n":"Edirnekapı","m":[["Metrobüs",29]]},{"n":"Fikirtepe","m":[["Metrobüs",43]]},{"n":"Florya","m":[["Metrobüs",16]]},{"n":"Güzelyurt","m":[["Metrobüs",5]]},{"n":"Halıcıoğlu","m":[["Metrobüs",31]]},{"n":"Haramidere","m":[["Metrobüs",6]]},{"n":"Haramidere Sanayi","m":[["Metrobüs",7]]},{"n":"Mustafa Kemal Paşa","m":[["Metrobüs",9]]},{"n":"Okmeydanı","m":[["Metrobüs",32]]},{"n":"Okmeydanı Hastane","m":[["Metrobüs",34]]},{"n":"Saadetdere Mahallesi","m":[["Metrobüs",8]]},{"n":"Sefaköy","m":[["Metrobüs",18]]},{"n":"Topkapı","m":[["Metrobüs",26]]},{"n":"Uzunçayır","m":[["Metrobüs",42]]},{"n":"Zeytinburnu","m":[["Metrobüs",23]]},{"n":"Çağlayan","m":[["Metrobüs",35]]},{"n":"İBB Sosyal Tesisler","m":[["Metrobüs",13]]},{"n":"Şükrübey","m":[["Metrobüs",12]]}]};
 
-// --- SSS (hem görünür HTML hem JSON-LD için tek kaynak) --------------------
-const FAQ = L.faq;
+// İstanbulkart binis ücretleri (20.07.2026): ilk binis, 1. aktarma, 2. aktarma+
+// Sabit ücretli hatlar (metro) icin. Kaynak: İBB tarifesi x1,10 zam.
+const FLAT = [
+  { tam: 46.20, ogr: 22.55, sos: 25.06 },
+  { tam: 34.40, ogr: 16.94, sos: 18.85 },
+  { tam: 26.42, ogr: 13.02, sos: 14.48 },
+];
 
-// --- HTML parçaları (sunucu tarafında üretilir) ----------------------------
-// Ağ genelinde seçenekler: M11 · aktarma · Marmaray şeklinde gruplanır.
-// Halkalı yalnızca "Aktarma noktası" grubunda görünür (iki hatta da ait).
-const opts = (selId) => {
-  const grp = (label, line, skipHub) =>
-    "<optgroup label=\"" + label + "\">" +
-    LINES[line].stations.map((s, i) => (skipHub && i === HUB[line]) ? "" :
-      "<option value=\"" + NODE_ID(line, i) + "\"" + (NODE_ID(line, i) === selId ? " selected" : "") + ">" + s.name + "</option>"
-    ).join("") + "</optgroup>";
-  return grp("M11 · Gayrettepe – Halkalı", "m11", true) +
-    "<optgroup label=\"Aktarma noktası\"><option value=\"" + HUB_ID + "\"" +
-      (HUB_ID === selId ? " selected" : "") + ">Halkalı · M11 ↔ Marmaray</option></optgroup>" +
-    grp("Marmaray · Halkalı – Gebze", "b1", true);
-};
-
-const popularHTML = POPULAR.map(p =>
-  "<button class=\"jump\" type=\"button\" data-from=\"" + p.a + "\" data-to=\"" + p.b + "\">" +
-  "<span class=\"j-od\">" + p.from + "<i>→</i>" + p.to + "</span>" +
-  "<span class=\"j-meta\"><b>" + p.time + " dk</b><em>" + p.stops + " durak</em><em>" + lira(p.fare) + "</em>" +
-    (p.xfer ? "<em class=\"x\">aktarmalı</em>" : "") + "</span>" +
-  "<span class=\"j-go\">→</span>" +
-  "</button>"
-).join("");
-
-// Dokunmatik hat şeridi — her istasyon bir düğüm, aktarma olanlar halka
-const railHTML = S.map((s, i) =>
-  "<button class=\"node\" type=\"button\" data-idx=\"" + i + "\"" + (s.akt !== "—" ? " data-t=\"1\"" : "") + " aria-label=\"" + s.name + "\">" +
-  "<span class=\"dot\"></span>" +
-  "<span class=\"pin\"></span>" +
-  "<span class=\"nlabel\">" + s.name + "</span>" +
-  "</button>"
-).join("");
-
-const stationRows = S.map((s, i) =>
-  "<tr>" +
-  "<td class=\"st-name\"><b>" + s.name + "</b><span>" + s.near + "</span></td>" +
-  "<td>" + s.ilce + "</td>" +
-  "<td>" + s.akt + "</td>" +
-  "<td class=\"nowrap\">" + s.fH + " – " + s.lH + "</td>" +
-  "<td class=\"nowrap\">" + s.fG + " – " + s.lG + "</td>" +
-  "</tr>"
-).join("");
-
-const fareRows = FARE.map((f, k) => {
-  const lo = k === 0 ? 1 : FARE[k - 1].maxN + 1;
-  return "<tr><td>" + lo + "–" + f.maxN + " durak</td><td>" + lira(f.tam) + "</td><td>" + lira(f.ogr) + "</td><td>" + lira(f.sos) + "</td></tr>";
-}).join("");
-
-const faqHTML = FAQ.map(f =>
-  "<details><summary>" + f.q + "</summary><p>" + f.a + "</p></details>"
-).join("");
-
-const faqJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": FAQ.map(f => ({
-    "@type": "Question", "name": f.q,
-    "acceptedAnswer": { "@type": "Answer", "text": f.a }
-  }))
-};
-const appJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "WebApplication",
-  "name": L.appName,
-  "url": SITE + L.path,
-  "applicationCategory": "TravelApplication",
-  "operatingSystem": "Web",
-  "inLanguage": "tr-TR",
-  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "TRY" }
-};
-
-return `<!DOCTYPE html>
-<html lang="tr">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${L.title}</title>
-<meta name="description" content="${L.desc}">
-<link rel="canonical" href="${SITE}${L.path}">
-<meta property="og:type" content="website">
-<meta property="og:title" content="${L.ogTitle}">
-<meta property="og:description" content="${L.ogDesc}">
-<meta property="og:locale" content="tr_TR">
-<meta property="og:url" content="${SITE}${L.path}">
-<meta name="twitter:card" content="summary">
-<meta name="theme-color" content="#12100F">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=Martian+Mono:wght@600;700&display=swap" rel="stylesheet">
-<script type="application/ld+json">${JSON.stringify(faqJsonLd)}</script>
-<script type="application/ld+json">${JSON.stringify(appJsonLd)}</script>
-<style>
+const CSS = `<style>
   :root{
     --paper:#F1EADC; --paper-2:#FBF6EC; --card:#FCF8EF;
     --ink:#17140F; --muted:#6C6250; --faint:#9A8F79;
@@ -553,7 +471,114 @@ return `<!DOCTYPE html>
   @media (prefers-reduced-motion:reduce){
     *{animation:none !important; transition:none !important}
   }
-</style>
+</style>`;
+
+// --- Sayfa üretici: tek hat -------------------------------------------------
+function buildPage(L) {
+const S = L.stations, FARE = L.fares, FREE = L.free;
+const LAST = S.length - 1;
+const other = LINES[OTHER[L.id]];
+function fareFor(n) { for (const f of FARE) if (n <= f.maxN) return f; return FARE[FARE.length - 1]; }
+function tripTime(i, j) { return j > i ? (S[j].tH - S[i].tH) : (S[j].tG - S[i].tG); }
+
+// --- Sık aranan güzergâhlar (SEO) ------------------------------------------
+const POPULAR = L.popular.map(([a, b]) => ({ a, b, ...planRoute(a, b) }));
+
+// --- SSS (hem görünür HTML hem JSON-LD için tek kaynak) --------------------
+const FAQ = L.faq;
+
+// --- HTML parçaları (sunucu tarafında üretilir) ----------------------------
+// Ağ genelinde seçenekler: M11 · aktarma · Marmaray şeklinde gruplanır.
+// Halkalı yalnızca "Aktarma noktası" grubunda görünür (iki hatta da ait).
+const opts = (selId) => {
+  const grp = (label, line, skipHub) =>
+    "<optgroup label=\"" + label + "\">" +
+    LINES[line].stations.map((s, i) => (skipHub && i === HUB[line]) ? "" :
+      "<option value=\"" + NODE_ID(line, i) + "\"" + (NODE_ID(line, i) === selId ? " selected" : "") + ">" + s.name + "</option>"
+    ).join("") + "</optgroup>";
+  return grp("M11 · Gayrettepe – Halkalı", "m11", true) +
+    "<optgroup label=\"Aktarma noktası\"><option value=\"" + HUB_ID + "\"" +
+      (HUB_ID === selId ? " selected" : "") + ">Halkalı · M11 ↔ Marmaray</option></optgroup>" +
+    grp("Marmaray · Halkalı – Gebze", "b1", true);
+};
+
+const popularHTML = POPULAR.map(p =>
+  "<button class=\"jump\" type=\"button\" data-from=\"" + p.a + "\" data-to=\"" + p.b + "\">" +
+  "<span class=\"j-od\">" + p.from + "<i>→</i>" + p.to + "</span>" +
+  "<span class=\"j-meta\"><b>" + p.time + " dk</b><em>" + p.stops + " durak</em><em>" + lira(p.fare) + "</em>" +
+    (p.xfer ? "<em class=\"x\">aktarmalı</em>" : "") + "</span>" +
+  "<span class=\"j-go\">→</span>" +
+  "</button>"
+).join("");
+
+// Dokunmatik hat şeridi — her istasyon bir düğüm, aktarma olanlar halka
+const railHTML = S.map((s, i) =>
+  "<button class=\"node\" type=\"button\" data-idx=\"" + i + "\"" + (s.akt !== "—" ? " data-t=\"1\"" : "") + " aria-label=\"" + s.name + "\">" +
+  "<span class=\"dot\"></span>" +
+  "<span class=\"pin\"></span>" +
+  "<span class=\"nlabel\">" + s.name + "</span>" +
+  "</button>"
+).join("");
+
+const stationRows = S.map((s, i) =>
+  "<tr>" +
+  "<td class=\"st-name\"><b>" + s.name + "</b><span>" + s.near + "</span></td>" +
+  "<td>" + s.ilce + "</td>" +
+  "<td>" + s.akt + "</td>" +
+  "<td class=\"nowrap\">" + s.fH + " – " + s.lH + "</td>" +
+  "<td class=\"nowrap\">" + s.fG + " – " + s.lG + "</td>" +
+  "</tr>"
+).join("");
+
+const fareRows = FARE.map((f, k) => {
+  const lo = k === 0 ? 1 : FARE[k - 1].maxN + 1;
+  return "<tr><td>" + lo + "–" + f.maxN + " durak</td><td>" + lira(f.tam) + "</td><td>" + lira(f.ogr) + "</td><td>" + lira(f.sos) + "</td></tr>";
+}).join("");
+
+const faqHTML = FAQ.map(f =>
+  "<details><summary>" + f.q + "</summary><p>" + f.a + "</p></details>"
+).join("");
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": FAQ.map(f => ({
+    "@type": "Question", "name": f.q,
+    "acceptedAnswer": { "@type": "Answer", "text": f.a }
+  }))
+};
+const appJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": L.appName,
+  "url": SITE + L.path,
+  "applicationCategory": "TravelApplication",
+  "operatingSystem": "Web",
+  "inLanguage": "tr-TR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "TRY" }
+};
+
+return `<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${L.title}</title>
+<meta name="description" content="${L.desc}">
+<link rel="canonical" href="${SITE}${L.path}">
+<meta property="og:type" content="website">
+<meta property="og:title" content="${L.ogTitle}">
+<meta property="og:description" content="${L.ogDesc}">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:url" content="${SITE}${L.path}">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#12100F">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=Martian+Mono:wght@600;700&display=swap" rel="stylesheet">
+<script type="application/ld+json">${JSON.stringify(faqJsonLd)}</script>
+<script type="application/ld+json">${JSON.stringify(appJsonLd)}</script>
+${CSS}
 </head>
 <body>
 <main class="wrap">
@@ -814,14 +839,326 @@ return `<!DOCTYPE html>
 </html>`;
 }
 
-const PAGES = { "/": buildPage(LINES.m11), "/marmaray": buildPage(LINES.b1) };
+function buildPlanner() {
+const P = NETWORK.P, LN = NETWORK.L;
+// Seçenekler alfabetik (Türkçe sıralama); value = P dizisindeki asıl indeks.
+const placeOpts = (sel) => P.map((p, i) => ({ p, i }))
+  .sort((a, b) => a.p.n.localeCompare(b.p.n, "tr"))
+  .map(({ p, i }) => {
+    const lines = [...new Set(p.m.map(m => m[0]))];
+    return "<option value=\"" + i + "\"" + (i === sel ? " selected" : "") + ">" +
+      p.n + " · " + lines.join(", ") + "</option>";
+  }).join("");
+const iHav = P.findIndex(p => p.n === "İstanbul Havalimanı");
+const iUsk = P.findIndex(p => p.n === "Üsküdar");
+
+const FAQ = [
+  { q: "İstanbul Havalimanı'ndan Üsküdar'a nasıl gidilir?",
+    a: "M11 metrosuyla Halkalı'ya, oradan Marmaray'a aktarma yapılır. Planlayıcıya kalkış saatinizi girdiğinizde varış saatini, aktarma noktasını ve toplam ücreti dakika dakika gösterir." },
+  { q: "Bu araç Google Maps'ten farkı ne?",
+    a: "Yalnızca raylı sistem ve metrobüs gösterir; otobüs, dolmuş ve yürüyüş rotası yoktur. Buna karşılık her bacağın ücretini ayrı ayrı ve toplamı doğru hesaplar — mesafe bazlı hatlarda (M11, Marmaray, Metrobüs) kademeli tarife, metrolarda İstanbulkart aktarma indirimi uygulanır." },
+  { q: "Süreler ne kadar güvenilir?",
+    a: "M11 ve Marmaray süreleri TCDD'nin yayımladığı gerçek tarifeden istasyon istasyon türetilmiştir. Metro ve metrobüs hatlarında istasyon bazlı tarife yayımlanmadığı için hat toplam süresi mesafeye orantılı dağıtılmıştır; bu hatlar sonuçta 'tahmini' olarak işaretlenir." },
+  { q: "Aktarma süresi nasıl hesaplanıyor?",
+    a: "Aktarma = peronlar arası yürüme (istasyon koordinatları arasındaki mesafeden, 80 m/dk) + ortalama bekleme (hattın sefer aralığının yarısı). Gerçek bekleme 0 ile sefer aralığı arasında değişir." },
+  { q: "Marmaray ve M11'de aktarma indirimi var mı?",
+    a: "Yok. Marmaray aktarma vermeyen bir ana hat olarak işletilir; M11 de kendi mesafe tarifesini uygular. Bu hatlara veya bu hatlardan geçişte iki ücret ayrı ayrı ödenir. İndirim yalnızca sabit ücretli metro hatları arasındaki geçişlerde uygulanır." },
+];
+const faqHTML = FAQ.map(f => "<details><summary>" + f.q + "</summary><p>" + f.a + "</p></details>").join("");
+const faqJsonLd = { "@context": "https://schema.org", "@type": "FAQPage",
+  "mainEntity": FAQ.map(f => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })) };
+const appJsonLd = { "@context": "https://schema.org", "@type": "WebApplication",
+  "name": "İstanbul Metro & Marmaray Yolculuk Planlayıcı", "url": SITE + "/",
+  "applicationCategory": "TravelApplication", "operatingSystem": "Web", "inLanguage": "tr-TR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "TRY" } };
+
+const lineChips = Object.keys(LN).map(k =>
+  "<span class=\"lchip\" style=\"--lc:" + LN[k].c + "\">" + k + "</span>").join("");
+
+return `<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>İstanbul Metro, Marmaray & Metrobüs Yolculuk Planlayıcı — Süre, Aktarma ve Ücret 2026</title>
+<meta name="description" content="İki durak arası kaç dakika, kaç TL? Kalkış saatini gir, varış saatini ve aktarmaları dakika dakika gör. 13 hat, 265 istasyon: tüm metrolar, Marmaray ve Metrobüs. Güncel 2026 ücret tarifesi.">
+<link rel="canonical" href="${SITE}/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="İstanbul Metro & Marmaray Yolculuk Planlayıcı — Süre, Aktarma, Ücret">
+<meta property="og:description" content="Kalkış saatini gir, varış saatini ve aktarmaları gör. Metro, Marmaray ve Metrobüs — 265 istasyon, güncel 2026 ücretleri.">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:url" content="${SITE}/">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#12100F">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=Martian+Mono:wght@600;700&display=swap" rel="stylesheet">
+<script type="application/ld+json">${JSON.stringify(faqJsonLd)}</script>
+<script type="application/ld+json">${JSON.stringify(appJsonLd)}</script>
+${CSS}
+<style>
+  .plan{display:grid; grid-template-columns:1fr 1fr auto; gap:10px; align-items:end; padding:22px 22px 18px}
+  .plan .field.when{min-width:132px}
+  .plan input[type=time]{width:100%; height:52px; padding:0 13px; font-size:16px; font-weight:600; font-family:inherit;
+    color:var(--ink); background:var(--paper-2); border:1.5px solid var(--edge); border-radius:14px}
+  .plan input[type=time]:focus{outline:none; border-color:var(--line); box-shadow:0 0 0 4px var(--ring)}
+  .nowbtn{margin-left:8px; font-size:11px; font-weight:700; letter-spacing:.6px; text-transform:uppercase;
+    color:var(--line); background:none; border:none; cursor:pointer; padding:0}
+  .swaprow{display:flex; justify-content:center; padding:0 22px 6px}
+  .swaprow button{width:40px; height:40px; border-radius:50%; border:1.5px solid var(--edge);
+    background:var(--paper-2); color:var(--line); cursor:pointer; display:flex; align-items:center; justify-content:center}
+  .opts{padding:0 22px 22px; display:flex; flex-direction:column; gap:12px}
+  .opt{border:1.5px solid var(--edge); border-radius:16px; overflow:hidden; background:var(--paper-2)}
+  .opt.best{border-color:var(--line); box-shadow:0 0 0 3px var(--ring)}
+  .opt-head{display:flex; align-items:center; gap:12px; padding:14px 16px; background:var(--card)}
+  .opt-badge{font-size:10px; font-weight:800; letter-spacing:.8px; text-transform:uppercase;
+    color:#fff; background:var(--line); border-radius:999px; padding:3px 9px}
+  .opt.alt .opt-badge{background:var(--faint)}
+  .opt-clock{font-family:"Martian Mono",ui-monospace,monospace; font-size:17px; font-weight:700; color:var(--ink)}
+  .opt-sum{margin-left:auto; text-align:right; font-size:12.5px; color:var(--faint); line-height:1.5}
+  .opt-sum b{display:block; font-size:15px; color:var(--ink)}
+  .opt-legs{padding:4px 16px 14px}
+  .lrow{display:flex; gap:11px; align-items:flex-start; padding:9px 0; font-size:13.5px}
+  .lrow+.lrow{border-top:1px dashed var(--edge)}
+  .lcode{flex:none; min-width:62px; text-align:center; font-family:"Martian Mono",ui-monospace,monospace;
+    font-size:10.5px; font-weight:700; color:#fff; background:var(--lc,#666); border-radius:6px; padding:4px 6px}
+  .lrow.x .lcode{background:var(--paper); color:var(--faint); border:1.5px solid var(--edge)}
+  .lbody{flex:1 1 auto; min-width:0}
+  .lbody b{font-weight:600}
+  .lbody span{display:block; color:var(--faint); font-size:12.5px; margin-top:2px}
+  .ltime{flex:none; font-family:"Martian Mono",ui-monospace,monospace; font-size:12px; color:var(--faint); text-align:right}
+  .est{display:inline-block; font-size:10px; font-weight:700; letter-spacing:.4px; text-transform:uppercase;
+    color:var(--faint); border:1px solid var(--edge); border-radius:4px; padding:1px 4px; margin-left:6px}
+  .lchips{display:flex; flex-wrap:wrap; gap:6px; margin-top:14px}
+  .lchip{font-family:"Martian Mono",ui-monospace,monospace; font-size:10.5px; font-weight:700; color:#fff;
+    background:var(--lc); border-radius:5px; padding:3px 7px}
+  @media (max-width:560px){
+    .plan{grid-template-columns:1fr; gap:12px}
+    .plan .field.when{min-width:0}
+  }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="topline"></div>
+  <header>
+    <div class="kicker">
+      <span class="roundel">İST</span>
+      <span class="kt">Metro · Marmaray · Metrobüs<b>Yolculuk Planlayıcı</b></span>
+    </div>
+    <h1>Kaç dakika, <em>kaçta varırım,</em> kaç lira?</h1>
+    <p class="lede">Nereden nereye ve kaçta çıkacağını seç; varış saatini, aktarmaları ve toplam ücreti dakika dakika gör. Sadece raylı sistem ve metrobüs — sade, hızlı.</p>
+    <div class="lchips">${lineChips}</div>
+    <nav class="linenav"><a href="/m11">M11 hat rehberi <i>→</i></a> <a href="/marmaray">Marmaray hat rehberi <i>→</i></a></nav>
+  </header>
+
+  <div class="card">
+    <div class="plan">
+      <div class="field from">
+        <label for="from"><b>A</b> Nereden</label>
+        <div class="selwrap"><select id="from">${placeOpts(iHav)}</select></div>
+      </div>
+      <div class="field to">
+        <label for="to"><b>B</b> Nereye</label>
+        <div class="selwrap"><select id="to">${placeOpts(iUsk)}</select></div>
+      </div>
+      <div class="field when">
+        <label for="when">Kalkış<button type="button" class="nowbtn" id="nowbtn">şimdi</button></label>
+        <input type="time" id="when" value="08:30">
+      </div>
+    </div>
+    <div class="swaprow">
+      <button id="swap" type="button" aria-label="Yönü değiştir" title="Yönü değiştir">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 4l-3 3M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3"/></svg>
+      </button>
+    </div>
+    <div class="opts" id="opts"></div>
+    <p class="note" id="note"></p>
+  </div>
+
+  <h2>Nasıl hesaplanıyor?</h2>
+  <p class="sub">Açık olmak, kesin görünmekten daha faydalı.</p>
+  ${faqHTML}
+
+  <p class="foot">
+    <b>Gayriresmî araçtır.</b> M11 ve Marmaray süreleri TCDD tarifesinden türetilmiştir; metro ve metrobüs süreleri hat toplam süresinin mesafeye dağıtılmasıyla <b>tahmin edilmiştir</b>. Ücretler İBB/UKOME 20.07.2026 tarifesindendir. Yolculuk öncesi
+    <a href="https://www.tcddtasimacilik.gov.tr" rel="noopener">tcddtasimacilik.gov.tr</a>,
+    <a href="https://www.metro.istanbul" rel="noopener">metro.istanbul</a> ve
+    <a href="https://tuhim.ibb.gov.tr" rel="noopener">İBB ücret tarifesi</a> sayfalarını kontrol edin.
+  </p>
+</main>
+
+<script>
+(function(){
+  var NET = ${JSON.stringify(NETWORK)};
+  var FLAT = ${JSON.stringify(FLAT)};
+  var L = NET.L, P = NET.P, X = NET.X;
+  var $ = function(id){ return document.getElementById(id); };
+  var fromEl = $("from"), toEl = $("to"), whenEl = $("when"), optsEl = $("opts"), noteEl = $("note");
+
+  // --- düğüm dizini -------------------------------------------------------
+  var nodes = [], nidx = {};
+  Object.keys(L).forEach(function(ln){
+    L[ln].n.forEach(function(_, i){ nidx[ln + ":" + i] = nodes.length; nodes.push([ln, i]); });
+  });
+  // komşuluk: hat boyunca + aktarma
+  var adj = nodes.map(function(){ return []; });
+  Object.keys(L).forEach(function(ln){
+    var t = L[ln].t;
+    for(var i = 0; i + 1 < t.length; i++){
+      var a = nidx[ln+":"+i], b = nidx[ln+":"+(i+1)], w = Math.max(1, Math.abs(t[i+1]-t[i]));
+      adj[a].push([b, w, 0]); adj[b].push([a, w, 0]);
+    }
+  });
+  X.forEach(function(x){
+    var a = nidx[x[0]+":"+x[1]], b = nidx[x[2]+":"+x[3]], walk = x[4];
+    adj[a].push([b, walk, 1]); adj[b].push([a, walk, 1]);
+  });
+
+  function fmt(m){ m = ((Math.round(m) % 1440) + 1440) % 1440; return String(Math.floor(m/60)).padStart(2,"0") + ":" + String(m%60).padStart(2,"0"); }
+  function lira(v){ return "₺" + v.toFixed(2).replace(".", ","); }
+  function fareDist(ln, stops){ var F = L[ln].fare; for(var k=0;k<F.length;k++){ if(stops<=F[k][0]) return F[k]; } return F[F.length-1]; }
+
+  // --- Dijkstra: çok kaynaklı → çok hedefli ------------------------------
+  function search(srcNodes, dstSet, penalty){
+    var INF = 1e9, dist = new Array(nodes.length).fill(INF), prev = new Array(nodes.length).fill(-1);
+    var seen = new Array(nodes.length).fill(false);
+    srcNodes.forEach(function(n){ dist[n] = 0; });
+    for(;;){
+      var u = -1, best = INF;
+      for(var i=0;i<nodes.length;i++) if(!seen[i] && dist[i] < best){ best = dist[i]; u = i; }
+      if(u < 0) break;
+      seen[u] = true;
+      if(dstSet[u]) break;
+      for(var k=0;k<adj[u].length;k++){
+        var e = adj[u][k], v = e[0];
+        var w = e[1] + (e[2] ? penalty(nodes[v][0]) : 0);
+        if(dist[u] + w < dist[v]){ dist[v] = dist[u] + w; prev[v] = u; }
+      }
+    }
+    var end = -1, bd = INF;
+    for(var i=0;i<nodes.length;i++) if(dstSet[i] && dist[i] < bd){ bd = dist[i]; end = i; }
+    if(end < 0) return null;
+    var path = [];
+    for(var c = end; c >= 0; c = prev[c]) path.unshift(c);
+    return path;
+  }
+
+  // yol → bacaklar
+  function toLegs(path){
+    var legs = [];
+    for(var i=0;i<path.length;i++){
+      var ln = nodes[path[i]][0], idx = nodes[path[i]][1];
+      if(legs.length && legs[legs.length-1].ln === ln) legs[legs.length-1].j = idx;
+      else legs.push({ ln: ln, i: idx, j: idx });
+    }
+    return legs.filter(function(g, k){ return !(g.i === g.j && legs.length > 1 && k > 0 && k < legs.length - 1) ; });
+  }
+
+  // bacakları saatlendir + ücretlendir
+  function schedule(legs, t0){
+    var t = t0, out = [], cost = 0, ogr = 0, sos = 0, flatSeq = 0, est = false;
+    legs.forEach(function(g, k){
+      var N = L[g.ln];
+      if(g.i === g.j) return;
+      var wait = Math.round(N.h / 2);
+      var walk = 0;
+      if(k > 0){
+        var prev = legs[k-1];
+        for(var q=0;q<X.length;q++){
+          var x = X[q];
+          if((x[0]===prev.ln && x[2]===g.ln) || (x[2]===prev.ln && x[0]===g.ln)){ walk = x[4]; break; }
+        }
+      }
+      var dep = t + walk + wait;
+      var ride = Math.abs(N.t[g.j] - N.t[g.i]);
+      var arr = dep + ride;
+      var stops = Math.abs(g.j - g.i);
+      var f;
+      if(N.fare){ var F = fareDist(g.ln, stops); f = { tam: F[1], ogr: F[2], sos: F[3] }; flatSeq = 0; }
+      else { var s = Math.min(flatSeq, FLAT.length - 1); f = FLAT[s]; flatSeq++; }
+      cost += f.tam; ogr += f.ogr; sos += f.sos;
+      if(N.k !== "tcdd") est = true;
+      out.push({ ln: g.ln, from: N.n[g.i], to: N.n[g.j], dep: dep, arr: arr, ride: ride,
+                 stops: stops, walk: walk, wait: wait, fare: f.tam, est: N.k !== "tcdd" });
+      t = arr;
+    });
+    return { legs: out, t0: t0, arr: t, total: t - t0, cost: cost, ogr: ogr, sos: sos, est: est };
+  }
+
+  function render(plan, badge, cls){
+    if(!plan || !plan.legs.length) return "";
+    var rows = plan.legs.map(function(g){
+      var pre = [];
+      if(g.walk) pre.push(g.walk + " dk yürüme");
+      pre.push("~" + g.wait + " dk bekleme");
+      return '<div class="lrow x"><span class="lcode">⇄</span><span class="lbody">' +
+             (g.walk ? "Aktarma" : "Bekleme") + '<span>' + pre.join(" + ") + '</span></span>' +
+             '<span class="ltime">' + fmt(g.dep - g.walk - g.wait) + '</span></div>' +
+             '<div class="lrow" style="--lc:' + L[g.ln].c + '"><span class="lcode">' + g.ln + '</span>' +
+             '<span class="lbody"><b>' + g.from + " → " + g.to + '</b>' +
+             '<span>' + g.ride + " dk · " + g.stops + " durak · " + lira(g.fare) +
+             (g.est ? '<i class="est">tahmini</i>' : '') + '</span></span>' +
+             '<span class="ltime">' + fmt(g.dep) + "<br>" + fmt(g.arr) + '</span></div>';
+    }).join("");
+    return '<div class="opt ' + cls + '"><div class="opt-head">' +
+      '<span class="opt-badge">' + badge + '</span>' +
+      '<span class="opt-clock">' + fmt(plan.t0) + " → " + fmt(plan.arr) + '</span>' +
+      '<span class="opt-sum"><b>' + plan.total + " dk · " + lira(plan.cost) + '</b>' +
+      (plan.legs.length - 1 > 0 ? (plan.legs.length - 1) + " aktarma" : "aktarmasız") +
+      ' · Öğr. ' + lira(plan.ogr) + '</span></div>' +
+      '<div class="opt-legs">' + rows + '</div></div>';
+  }
+
+  function calc(){
+    var a = P[+fromEl.value], b = P[+toEl.value];
+    var src = a.m.map(function(m){ return nidx[m[0]+":"+m[1]]; });
+    var dstSet = {}; b.m.forEach(function(m){ dstSet[nidx[m[0]+":"+m[1]]] = 1; });
+    if(src.some(function(n){ return dstSet[n]; })){
+      optsEl.innerHTML = ""; noteEl.textContent = "Kalkış ve varış aynı yer. Farklı bir durak seçin."; return;
+    }
+    var parts = (whenEl.value || "08:30").split(":");
+    var t0 = (+parts[0]) * 60 + (+parts[1]);
+
+    var fast = search(src, dstSet, function(){ return 5; });        // hızlı: aktarma cezası düşük
+    var few  = search(src, dstSet, function(){ return 25; });       // az aktarmalı
+    var pf = fast ? schedule(toLegs(fast), t0) : null;
+    var pl = few  ? schedule(toLegs(few),  t0) : null;
+    var html = "";
+    if(pf) html += render(pf, "En hızlı", "best");
+    if(pl && pf && (pl.legs.length !== pf.legs.length || pl.total !== pf.total))
+      html += render(pl, pl.legs.length < pf.legs.length ? "Daha az aktarma" : "Alternatif", "alt");
+    optsEl.innerHTML = html || "<p class=\\"note\\">Rota bulunamadı.</p>";
+    noteEl.innerHTML = (pf && pf.est
+      ? "Metro ve metrobüs süreleri <b>tahminidir</b> (istasyon bazlı tarife yayımlanmıyor); M11 ve Marmaray gerçek tarifeden gelir. "
+      : "Süreler TCDD tarifesinden. ") +
+      "Bekleme, sefer aralığının yarısı olarak alınır. Mesafe bazlı hatlarda (M11, Marmaray, Metrobüs) aktarma indirimi uygulanmaz.";
+  }
+
+  fromEl.addEventListener("change", calc);
+  toEl.addEventListener("change", calc);
+  whenEl.addEventListener("change", calc);
+  $("swap").addEventListener("click", function(){ var t = fromEl.value; fromEl.value = toEl.value; toEl.value = t; calc(); });
+  $("nowbtn").addEventListener("click", function(){
+    var d = new Date();
+    whenEl.value = String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+    calc();
+  });
+  calc();
+})();
+</script>
+</body>
+</html>`;
+}
+
+const PAGES = { "/": buildPlanner(), "/m11": buildPage(LINES.m11), "/marmaray": buildPage(LINES.b1) };
 
 const ROBOTS = "User-agent: *\nAllow: /\nSitemap: " + SITE + "/sitemap.xml\n";
 const SITEMAP = '<?xml version="1.0" encoding="UTF-8"?>\n' +
   '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+  '  <url><loc>' + SITE + '/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>\n' +
   Object.values(LINES).map(l =>
-    "  <url><loc>" + SITE + l.path + "</loc><changefreq>weekly</changefreq><priority>" +
-    (l.path === "/" ? "1.0" : "0.9") + "</priority></url>\n").join("") +
+    "  <url><loc>" + SITE + l.path + "</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>\n").join("") +
   "</urlset>\n";
 
 export default {

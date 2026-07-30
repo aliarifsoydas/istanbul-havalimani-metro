@@ -18,8 +18,9 @@ const ORIGIN = "https://istanbul-havalimani-metro.pages.dev";
 
 // Worker yolu -> statik dosya yolu (Pages, /marmaray/ için marmaray/index.html servis eder)
 const OUT = {
-  "/": "index.html",
-  "/marmaray": "marmaray/index.html",
+  "/": "index.html",                    // ağ planlayıcı
+  "/m11": "m11/index.html",             // M11 hat rehberi
+  "/marmaray": "marmaray/index.html",   // Marmaray hat rehberi
   "/robots.txt": "robots.txt",
   "/sitemap.xml": "sitemap.xml",
 };
