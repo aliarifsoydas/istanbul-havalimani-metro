@@ -8,12 +8,22 @@ Google Maps'ten farkı: sadece raylı sistem + metrobüs (sade), buna karşılı
 
 Hatlar: M1A, M1B, M2, M3, M4, M5, M6, M7, M8, M9, M11, Marmaray, Metrobüs.
 
-### Süre verisinin kaynağı hatta göre değişir
-- **M11 ve Marmaray** — TCDD'nin yayımladığı gerçek tarifeden istasyon istasyon
-  türetildi (son tren, uçtan uca giden tek trenin geçiş saatleri).
-- **Metro ve Metrobüs** — istasyon bazlı tarife yayımlanmadığı için hat toplam
-  süresi mesafeye orantılı dağıtıldı. Arayüzde `tahmini` etiketiyle gösterilir.
-  Metrobüs'te köprü trafiği modellenmez; gerçek süre sapabilir.
+### Süre ve sefer verisi
+- **M1A, M1B, M2, M3, M4, M5, M6** — İBB Açık Veri **GTFS** tarifesinden: gerçek
+  kalkış saatleri (hafta içi, ~150–290 sefer/yön) ve istasyonlar arası gerçek
+  süreler. GTFS Ocak 2023 tarihli; sonradan uzayan kesimler (M3, M4, M5 uçları)
+  hattın kendi gerçek hızıyla ekstrapole edildi.
+- **M11 ve Marmaray** — TCDD tarifesi; süreler son tren geçişlerinden, kalkışlar
+  gerçek ilk/son sefer saatine demirlenmiş 15 dk'lık sabit aralıktan.
+- **M7, M8, M9, Metrobüs** — istasyon bazlı tarife bulunamadı; süre hat toplamının
+  mesafeye orantılı dağıtımı. Arayüzde `tahmini` etiketiyle gösterilir.
+
+### Bekleme fazlıdır, ortalama değil
+Gerçek tarifesi olan hatlarda bekleme, **sıradaki kalkışa göre dakikasıyla**
+hesaplanır. Bu önemlidir: aktarmalar fazlıdır — M11 Halkalı'ya 14:44'te varıp
+Marmaray 14:58'de kalktığı için bekleme her seferinde ~11 dk çıkar, "aralık/2"
+formülünün söylediği 8 dk değil. Aynı sebeple 5 dk erken çıkmak varış saatini
+hiç değiştirmeyebilir, 1 dk geç kalmak 15 dk kaybettirebilir.
 
 ### Harita
 Rota isteğe bağlı olarak OpenStreetMap üzerinde çizilir (Leaflet). Harita
