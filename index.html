@@ -383,7 +383,7 @@
   function fareDist(ln, stops){ var F = L[ln].fare; for(var k=0;k<F.length;k++){ if(stops<=F[k][0]) return F[k]; } return F[F.length-1]; }
 
   // --- Dijkstra: çok kaynaklı → çok hedefli ------------------------------
-  function search(srcNodes, dstSet, penalty){
+  function search(srcNodes, dstSet, penalty, banned){
     var INF = 1e9, dist = new Array(nodes.length).fill(INF), prev = new Array(nodes.length).fill(-1);
     var seen = new Array(nodes.length).fill(false);
     srcNodes.forEach(function(n){ dist[n] = 0; });
@@ -395,6 +395,7 @@
       if(dstSet[u]) break;
       for(var k=0;k<adj[u].length;k++){
         var e = adj[u][k], v = e[0];
+        if(e[2] && banned && banned[edgeKey(u, v)]) continue;     // yasaklı aktarma
         var w = e[1] + (e[2] ? penalty(nodes[v][0]) : 0);
         if(dist[u] + w < dist[v]){ dist[v] = dist[u] + w; prev[v] = u; }
       }
@@ -405,6 +406,14 @@
     var path = [];
     for(var c = end; c >= 0; c = prev[c]) path.unshift(c);
     return path;
+  }
+  function edgeKey(a, b){ return a < b ? a + ":" + b : b + ":" + a; }
+  // yoldaki aktarma kenarları (hat değişimi olan ardışık düğüm çiftleri)
+  function xferEdges(path){
+    var out = [];
+    for(var i=1;i<path.length;i++)
+      if(nodes[path[i]][0] !== nodes[path[i-1]][0]) out.push(edgeKey(path[i-1], path[i]));
+    return out;
   }
 
   // yol → bacaklar
@@ -519,15 +528,79 @@
     var parts = (whenEl.value || "08:30").split(":");
     var t0 = (+parts[0]) * 60 + (+parts[1]);
 
-    var fast = search(src, dstSet, function(){ return 5; });        // hızlı: aktarma cezası düşük
-    var few  = search(src, dstSet, function(){ return 25; });       // az aktarmalı
-    var pf = fast ? schedule(toLegs(fast), t0) : null;
-    var pl = few  ? schedule(toLegs(few),  t0) : null;
-    var html = "";
-    if(pf) html += render(pf, "En hızlı", "best");
-    if(pl && pf && (pl.legs.length !== pf.legs.length || pl.total !== pf.total))
-      html += render(pl, pl.legs.length < pf.legs.length ? "Daha az aktarma" : "Alternatif", "alt");
-    optsEl.innerHTML = html || "<p class=\"note\">Rota bulunamadı.</p>";
+    // --- aday rotalar -----------------------------------------------------
+    // Tek bir Dijkstra tek yol verir; farklı ceza katsayıları çoğu zaman aynı
+    // yolu bulur. Gerçek çeşitlilik için en iyi rotanın kullandığı aktarma
+    // kenarlarını sırayla yasaklayıp yeniden arıyoruz (Yen'in yöntemine yakın).
+    var cands = [], seenSig = {};
+    function addCand(path){
+      if(!path) return null;
+      var legs = toLegs(path).filter(function(g){ return g.i !== g.j; });
+      if(!legs.length) return null;
+      var sig = legs.map(function(g){ return g.ln + ":" + g.i + ">" + g.j; }).join("|");
+      if(seenSig[sig]) return null;
+      seenSig[sig] = 1;
+      var pl = schedule(legs, t0);
+      pl.sig = sig; pl.path = path;
+      cands.push(pl);
+      return pl;
+    }
+    var base = search(src, dstSet, function(){ return 4; });
+    addCand(base);
+    addCand(search(src, dstSet, function(){ return 30; }));                     // az aktarmalı
+    addCand(search(src, dstSet, function(ln){ return L[ln].fare ? 4 : 14; }));  // ücret duyarlı
+    // Kademeli yasaklama: bulunan her rotanın aktarmalarını yasaklayıp yeniden
+    // ara. Böylece 2., 3. koridora da inilir — tek turda yalnızca komşu rota
+    // bulunuyordu ve farklı hatlardan geçen seçenekler hiç görünmüyordu.
+    var banned = {};
+    for(var round = 0; round < 5 && cands.length < 8; round++){
+      var p = search(src, dstSet, function(){ return 4; }, banned);
+      if(!p) break;
+      addCand(p);
+      var es = xferEdges(p);
+      if(!es.length) break;
+      es.forEach(function(e){ banned[e] = 1; });
+    }
+    if(!cands.length){ optsEl.innerHTML = '<p class="note">Rota bulunamadı.</p>'; $("warn").innerHTML = ""; lastPlan = null; return; }
+
+    cands.sort(function(a, b){ return a.total - b.total; });
+    var pf = cands[0];
+    var baseLines = {}; pf.legs.forEach(function(g){ baseLines[g.ln] = 1; });
+    var minX = Math.min.apply(null, cands.map(function(c){ return c.legs.length - 1; }));
+    var minC = Math.min.apply(null, cands.map(function(c){ return c.cost; }));
+
+    // Alternatifleri yalnızca süreye göre değil, FARKLILIĞA göre de seç:
+    // farklı hat kullanan bir rota biraz uzun olsa da gösterilmeye değer.
+    cands.slice(1).forEach(function(c){
+      c.extra = c.total - pf.total;
+      c.fewer = (c.legs.length - 1) < (pf.legs.length - 1) && (c.legs.length - 1) === minX;
+      c.cheaper = c.cost < pf.cost - 0.01 && c.cost <= minC + 0.01;
+      c.newLines = c.legs.map(function(g){ return g.ln; }).filter(function(ln){ return !baseLines[ln]; });
+      c.score = c.extra - (c.fewer ? 18 : 0) - (c.cheaper ? 12 : 0) - (c.newLines.length ? 10 : 0);
+    });
+    var alts = cands.slice(1).filter(function(c){ return c.extra <= 35; })
+                    .sort(function(a, b){ return a.score - b.score; });
+    var shown = [{ pl: pf, badge: "En hızlı", cls: "best" }];
+    var usedSig = {}; usedSig[pf.sig] = 1;
+    var seenLineSet = {}; seenLineSet[Object.keys(baseLines).sort().join("+")] = 1;
+    alts.forEach(function(c){
+      if(shown.length >= 3 || usedSig[c.sig]) return;
+      var ls = c.legs.map(function(g){ return g.ln; }).sort().join("+");
+      if(seenLineSet[ls]) return;                     // aynı hat kümesini tekrarlama
+      seenLineSet[ls] = 1; usedSig[c.sig] = 1;
+      var badge = c.fewer ? "Daha az aktarma"
+                : c.cheaper ? "Daha ucuz"
+                : c.newLines.length ? c.newLines[0] + " üzerinden"
+                : "Alternatif";
+      shown.push({ pl: c, badge: badge, cls: "alt" });
+    });
+    // Seçim farklılık skoruna göre yapıldı; GÖSTERİM süreye göre sıralanır,
+    // yoksa 92 dk'lık seçenek 77 dk'lığın üstünde görünebiliyor.
+    var head = shown.shift();
+    shown.sort(function(a, b){ return a.pl.total - b.pl.total; });
+    shown.unshift(head);
+    var html = shown.map(function(s){ return render(s.pl, s.badge, s.cls); }).join("");
+    optsEl.innerHTML = html;
     lastPlan = pf; if(mapReady) drawMap();
     var w = $("warn"); w.innerHTML = "";
     if(pf && pf.shifted){
