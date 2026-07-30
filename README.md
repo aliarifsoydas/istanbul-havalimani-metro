@@ -15,6 +15,9 @@ Hatlar: M1A, M1B, M2, M3, M4, M5, M6, M7, M8, M9, M11, Marmaray, Metrobüs.
   hattın kendi gerçek hızıyla ekstrapole edildi.
 - **M11 ve Marmaray** — TCDD tarifesi; süreler son tren geçişlerinden, kalkışlar
   gerçek ilk/son sefer saatine demirlenmiş 15 dk'lık sabit aralıktan.
+- **M5 uzantısı** (Veysel Karani, Hasanpaşa, Sultanbeyli) — İBB API'sinde
+  koordinatsızdı, OSM'den alındı; süreler hattın kendi gerçek hızıyla (37 km/s)
+  uzatıldı.
 - **M7, M8, M9, Metrobüs** — istasyon bazlı tarife bulunamadı; süre hat toplamının
   mesafeye orantılı dağıtımı. Arayüzde `tahmini` etiketiyle gösterilir.
 
@@ -110,5 +113,12 @@ Yeni hat eklemek için `worker.js` içindeki `LINES` nesnesine bir giriş ve
 - **Aktarma süresi:** yürüme payı 4 dk (tahmini) + ortalama bekleme (sefer
   aralığı ÷ 2). Gerçek bekleme 0 ile sefer aralığı arasında değişir; ölçülmüş
   peron-arası yürüme verisi yayımlanmadığı için bu kısım tahmindir.
+
+### Veri denetimi
+`/tmp` dışı bağımlılık yok; veri bütünlüğü şu kontrollerle doğrulanır: dizi
+uzunlukları, süre/km monotonluğu, ticari hızın 15–70 km/s aralığında olması,
+koordinatların İstanbul sınırlarında olması, kalkış listelerinin sıralı ve
+0–1440 aralığında olması, gündüz içinde 60 dk+ boşluk bulunmaması, servis
+saatlerinin kalkış listeleriyle uyumu.
 
 Gayriresmîdir; ücret ve saatler değişebilir.
