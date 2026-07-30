@@ -909,6 +909,10 @@ ${CSS}
     background:var(--paper-2); color:var(--line); cursor:pointer; display:flex; align-items:center; justify-content:center}
   .opts{padding:0 22px 22px; display:flex; flex-direction:column; gap:12px}
   .opt{border:1.5px solid var(--edge); border-radius:16px; overflow:hidden; background:var(--paper-2)}
+  .opt{cursor:pointer}
+  .opt:hover{border-color:var(--line)}
+  .opt.sel{border-color:var(--line); box-shadow:0 0 0 3px var(--ring)}
+  .opt.sel .opt-badge::after{content:" · haritada"; font-weight:700; opacity:.85}
   .opt.best{border-color:var(--line); box-shadow:0 0 0 3px var(--ring)}
   .opt-head{display:flex; align-items:center; gap:12px; padding:14px 16px; background:var(--card)}
   .opt-badge{font-size:10px; font-weight:800; letter-spacing:.8px; text-transform:uppercase;
@@ -1186,7 +1190,7 @@ ${CSS}
              est: est, shifted: shifted, nextDay: nextDay };
   }
 
-  function render(plan, badge, cls){
+  function render(plan, badge, cls, k){
     if(!plan || !plan.legs.length) return "";
     var rows = plan.legs.map(function(g){
       var pre = [];
@@ -1201,7 +1205,7 @@ ${CSS}
              (g.est ? '<i class="est">tahmini</i>' : '') + '</span></span>' +
              '<span class="ltime">' + fmt(g.dep) + "<br>" + fmt(g.arr) + '</span></div>';
     }).join("");
-    return '<div class="opt ' + cls + '"><div class="opt-head">' +
+    return '<div class="opt ' + cls + (k === 0 ? " sel" : "") + '" data-opt="' + k + '" role="button" tabindex="0"><div class="opt-head">' +
       '<span class="opt-badge">' + badge + '</span>' +
       '<span class="opt-clock">' + fmt(plan.t0) + " → " + fmt(plan.arr) + '</span>' +
       '<span class="opt-sum"><b>' + plan.total + " dk · " + lira(plan.cost) + '</b>' +
@@ -1291,9 +1295,10 @@ ${CSS}
     var head = shown.shift();
     shown.sort(function(a, b){ return a.pl.total - b.pl.total; });
     shown.unshift(head);
-    var html = shown.map(function(s){ return render(s.pl, s.badge, s.cls); }).join("");
+    shownPlans = shown.map(function(s){ return s.pl; });
+    var html = shown.map(function(s, k){ return render(s.pl, s.badge, s.cls, k); }).join("");
     optsEl.innerHTML = html;
-    lastPlan = pf; if(mapReady) drawMap();
+    lastPlan = shownPlans[0]; if(mapReady) drawMap();
     var w = $("warn"); w.innerHTML = "";
     if(pf && pf.shifted){
       var s = pf.shifted;
@@ -1312,7 +1317,7 @@ ${CSS}
   // --- OpenStreetMap (Leaflet) — yalnızca istenince yüklenir ---------------
   // Harita sayfa açılışında yüklenmez: Leaflet + karo istekleri ancak kullanıcı
   // düğmeye bastığında yapılır. Böylece sayfa bağımlılıksız ve hızlı kalır.
-  var map = null, layer = null, mapReady = false, lastPlan = null;
+  var map = null, layer = null, mapReady = false, lastPlan = null, shownPlans = [];
   function loadLeaflet(cb){
     if(window.L && window.L.map) return cb();   // zaten yüklü
     var css = document.createElement("link");
@@ -1356,6 +1361,27 @@ ${CSS}
     $("mapnote").innerHTML = 'Karolar © <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap</a> katkıcıları. ' +
       'Çizgiler istasyon koordinatlarını birleştirir; gerçek hat güzergâhı değildir.';
   }
+  // Seçenek kartına tıklayınca o rota haritaya çizilir.
+  function selectOpt(k){
+    if(!shownPlans[k]) return;
+    lastPlan = shownPlans[k];
+    var cards = optsEl.getElementsByClassName("opt");
+    for(var i=0;i<cards.length;i++) cards[i].classList.toggle("sel", +cards[i].getAttribute("data-opt") === k);
+    if(!mapReady){ $("mapbtn").click(); return; }        // ilk tıklamada haritayı aç
+    $("map").classList.add("on");
+    $("mapbtn").textContent = "🗺️ Haritayı gizle";
+    setTimeout(function(){ map && map.invalidateSize(); drawMap(); }, 60);
+  }
+  optsEl.addEventListener("click", function(e){
+    var card = e.target.closest ? e.target.closest(".opt") : null;
+    if(card) selectOpt(+card.getAttribute("data-opt"));
+  });
+  optsEl.addEventListener("keydown", function(e){
+    if(e.key !== "Enter" && e.key !== " ") return;
+    var card = e.target.closest ? e.target.closest(".opt") : null;
+    if(card){ e.preventDefault(); selectOpt(+card.getAttribute("data-opt")); }
+  });
+
   $("mapbtn").addEventListener("click", function(){
     var el = $("map");
     if(mapReady){ el.classList.toggle("on"); this.textContent = el.classList.contains("on") ? "🗺️ Haritayı gizle" : "🗺️ Rotayı haritada göster"; if(el.classList.contains("on")) setTimeout(function(){ map && map.invalidateSize(); drawMap(); }, 60); return; }
