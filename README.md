@@ -15,6 +15,19 @@ Hatlar: M1A, M1B, M2, M3, M4, M5, M6, M7, M8, M9, M11, Marmaray, Metrobüs.
   süresi mesafeye orantılı dağıtıldı. Arayüzde `tahmini` etiketiyle gösterilir.
   Metrobüs'te köprü trafiği modellenmez; gerçek süre sapabilir.
 
+### Harita
+Rota isteğe bağlı olarak OpenStreetMap üzerinde çizilir (Leaflet). Harita
+kütüphanesi ve karolar **sayfa açılışında yüklenmez** — yalnızca kullanıcı
+"Haritada göster" düğmesine bastığında istenir, böylece sayfa bağımlılıksız
+ve hızlı kalır. Çizgiler istasyon koordinatlarını birleştirir; gerçek hat
+güzergâhı (viraj/tünel geometrisi) değildir.
+
+### Sefer saatleri
+Her hattın ilk/son sefer saati vardır ve plan bunlara uyar: servis kapalıysa
+ilk sefere kadar beklenir, aktarmada son sefer kaçırılırsa ertesi güne kayar,
+kullanıcıya uyarı bandı gösterilir. M11/Marmaray'ın Cuma–Cumartesi gece ek
+seferleri modellenmez.
+
 ### Aktarma
 Aktarma noktaları istasyon koordinatlarından 400 m eşiğiyle bulundu (32 aktarma
 yeri). Aktarma süresi = yürüme (mesafeden, 80 m/dk) + ortalama bekleme (sefer
