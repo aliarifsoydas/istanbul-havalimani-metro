@@ -8,7 +8,8 @@ Google Maps'ten farkı: sadece raylı sistem + metrobüs (sade), buna karşılı
 
 Hatlar: **metro** M1A, M1B, M2, M3, M4, M5, M6, M7, M8, M9, M11 · **banliyö**
 Marmaray · **tramvay** T1, T3, T4, T5 · **füniküler/teleferik** F1, F2 (Tünel), F4,
-TF1, TF2 · **Metrobüs**. Toplam 22 hat, 353 istasyon.
+TF1, TF2 · **banliyö** B2 (Halkalı–Bahçeşehir) · **Metrobüs**.
+Toplam 23 hat, 356 istasyon.
 
 F2 (Tünel) Metro İstanbul API'sinde yoktur çünkü İETT işletir; ayrıca eklendi.
 
@@ -66,9 +67,13 @@ görünen adı değil, o aktarma noktasındaki tüm istasyon adlarını kapsar �
 ### İki ayrı kalite göstergesi
 Bir bacağın **yolculuk süresi** ile **kalkış saati** ayrı ayrı değerlendirilir:
 - `tq` alanı süre kalitesini tutar. Gerçek tarifeden gelmeyen hatlarda bacakta
-  **"süre tahmini"** rozeti çıkar. Şu an yalnızca **M9** (GTFS'te 14 durağın
-  5'i var, gerisi o hattın kendi ölçülen hızıyla —2,5 dk/durak— uzatıldı) ve
-  **Metrobüs** (hiçbir kaynakta tarife yok).
+  **"süre tahmini"** rozeti çıkar. Şu an yalnızca **Metrobüs**te çıkıyor —
+  başka hiçbir kaynakta Metrobüs tarifesi bulunamadı.
+
+  M9 kapatıldı: Metro İstanbul kendi sitesinde **26 dk tek yön, 17,2 km,
+  14 istasyon, pik 9 dk** yayımlıyor. Resmî toplam alındı, istasyon dağılımı
+  GTFS'in gerçek 5 duraklık ölçümüne oturtulup 26 dk'ya ölçeklendi
+  (önceki tahminimiz 32 dk idi, %23 fazla).
 - Bekleme satırı ayrıca kaynağını yazar (gerçek tarife / ortalama).
 
 ### Sefer aralığının kaynağı
