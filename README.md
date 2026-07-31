@@ -1,15 +1,21 @@
-# İstanbul Metro · Marmaray · Metrobüs — Yolculuk Planlayıcı
+# İstanbul Raylı Sistem — Yolculuk Planlayıcı
 
-**`/` = ağ planlayıcı.** 13 hat, 265 istasyon, 227 yer. Nereden–nereye ve kalkış
+**`/` = ağ planlayıcı.** 21 hat, 351 istasyon, 289 yer (46'sı aktarma noktası). Nereden–nereye ve kalkış
 saatini seç; varış saatini, aktarmaları ve toplam ücreti dakika dakika verir.
 Google Maps'ten farkı: sadece raylı sistem + metrobüs (sade), buna karşılık
 **ücreti doğru hesaplar** — mesafe bazlı hatlarda kademeli tarife, metrolarda
 İstanbulkart aktarma indirimi.
 
-Hatlar: M1A, M1B, M2, M3, M4, M5, M6, M7, M8, M9, M11, Marmaray, Metrobüs.
+Hatlar: **metro** M1A, M1B, M2, M3, M4, M5, M6, M7, M8, M9, M11 · **banliyö**
+Marmaray · **tramvay** T1, T3, T4, T5 · **füniküler/teleferik** F1, F4, TF1, TF2 ·
+**Metrobüs**.
+
+Durak seçimi **aranabilir**: yazmaya başlayınca filtrelenir. Arama yalnızca
+görünen adı değil, o aktarma noktasındaki tüm istasyon adlarını kapsar — ör.
+"Gülhane" yazınca Sirkeci kümesi, "Vezneciler" yazınca Laleli kümesi bulunur.
 
 ### Süre ve sefer verisi
-- **M1A, M1B, M2, M3, M4, M5, M6** — İBB Açık Veri **GTFS** tarifesinden: gerçek
+- **M1A, M1B, M2, M3, M4, M5, M6, T1, T4, F1** — İBB Açık Veri **GTFS** tarifesinden: gerçek
   kalkış saatleri (hafta içi, ~150–290 sefer/yön) ve istasyonlar arası gerçek
   süreler. GTFS Ocak 2023 tarihli; sonradan uzayan kesimler (M3, M4, M5 uçları)
   hattın kendi gerçek hızıyla ekstrapole edildi.
@@ -43,7 +49,7 @@ Hatlar: M1A, M1B, M2, M3, M4, M5, M6, M7, M8, M9, M11, Marmaray, Metrobüs.
 - **M5 uzantısı** (Veysel Karani, Hasanpaşa, Sultanbeyli) — İBB API'sinde
   koordinatsızdı, OSM'den alındı; süreler hattın kendi gerçek hızıyla (37 km/s)
   uzatıldı.
-- **M7, M8, M9, Metrobüs** — istasyon bazlı tarife bulunamadı; süre hat toplamının
+- **M7, M8, M9, T3, T5, F4, TF1, TF2, Metrobüs** — istasyon bazlı tarife yok; süre hat toplamının
   mesafeye orantılı dağıtımı. Arayüzde `tahmini` etiketiyle gösterilir.
 
 ### Bekleme: iki farklı güven seviyesi
