@@ -96,9 +96,17 @@ tarifelerini arka arkaya veriyor; birleşik liste yanıltıcı biçimde sık gö
 (M7'de 3 dk gibi). Saatlerin geri sardığı yerden bloklara bölünüp **ilk blok
 (hafta içi)** alınıyor: M9 10 dk, M7 5 dk, M8 10 dk.
 
-**Moovit'in istasyon-arası süreleri kullanılmadı** — matrislerde ofset deseni
-kusursuz 2'şer dakika çıkıyor, yani uydurma. Yalnızca kalkış saatleri alındı,
-yolculuk süreleri kendi verimizden.
+**Moovit'in istasyon-arası süreleri hatta göre gerçek ya da uydurma.** GTFS'i
+olan hatlara karşı test edildi:
+
+    M4 Moovit: 0 2 4 6 9 11 13 15 18 20 22   ← düzensiz
+    M4 GTFS  : 0 2 4 7 8 11 13 15 18 21 23   ← örtüşüyor, GERÇEK
+
+    M2 Moovit: 0 2 4 6 8 10 12 14 16 18 20   ← kusursuz 2'şer
+    M2 GTFS  : 0 2 4 6 8 11 13 15 17 19 20   ← çelişiyor, UYDURMA
+
+M2, M8, M9 ve M7'de Moovit düz 2 dk dolgusu veriyor; bu hatlarda yalnızca
+kalkış saatleri alındı, süreler GTFS'ten ya da kendi verimizden.
 
 **M7'de iki servis var:** Yıldız'dan 12 dk, Mecidiyeköy'den 5 dk. 17 istasyonun
 15'i Mecidiyeköy kesiminde olduğu için o liste esas alındı; Yıldız ve Fulya'da
