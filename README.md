@@ -13,11 +13,22 @@ Hatlar: M1A, M1B, M2, M3, M4, M5, M6, M7, M8, M9, M11, Marmaray, Metrobüs.
   kalkış saatleri (hafta içi, ~150–290 sefer/yön) ve istasyonlar arası gerçek
   süreler. GTFS Ocak 2023 tarihli; sonradan uzayan kesimler (M3, M4, M5 uçları)
   hattın kendi gerçek hızıyla ekstrapole edildi.
-- **M11 ve Marmaray** — yolculuk süreleri TCDD tarifesinden (son tren geçişleri),
-  güvenilir. **Kalkış dakikaları YOK**: bu iki hat için istasyon bazlı kalkış
-  saati yayımlanmıyor, kaynaklar da çelişiyor (bir kaynak Gayrettepe ilk sefer
-  05:55 / 15 dk aralık, bir başkası 06:10 / 20 dk diyor). Bu yüzden bekleme
-  ortalama (aralık ÷ 2) olarak verilir; sıradaki trenin dakikası iddia edilmez.
+- **Marmaray** — yolculuk süreleri TCDD tarifesinden; **kalkışlar istasyon bazlı
+  yayımlanmış tarifeden**. Her istasyonun kendi ilk ve ikinci tren saati alınıp
+  15 dk aralıkla ilerletilir, yani faz istasyon istasyon gerçektir.
+  Hatta **iki servis** vardır ve bu modellenir:
+
+  | Kesim | Servis | Efektif aralık |
+  |---|---|---|
+  | Halkalı – Ataköy | yalnızca tam hat | 15 dk |
+  | Ataköy – Pendik | tam hat + kısa servis | ~7 dk |
+  | Pendik – Gebze | yalnızca tam hat | 15 dk |
+
+  Kısa servis (Ataköy–Pendik) yalnızca **hem kalkış hem varış** bu aralıktaysa
+  sayılır; değilse Pendik'te inersiniz, o yüzden 15 dk uygulanır.
+- **M11** — yolculuk süreleri TCDD tarifesinden, güvenilir. **Kalkış dakikası
+  YOK**: kaynaklar çelişiyor (bir kaynak ilk sefer 05:55 / 15 dk, bir başkası
+  06:10 / 20 dk diyor). Bekleme ortalama (aralık ÷ 2) verilir.
 - **M5 uzantısı** (Veysel Karani, Hasanpaşa, Sultanbeyli) — İBB API'sinde
   koordinatsızdı, OSM'den alındı; süreler hattın kendi gerçek hızıyla (37 km/s)
   uzatıldı.
@@ -25,10 +36,10 @@ Hatlar: M1A, M1B, M2, M3, M4, M5, M6, M7, M8, M9, M11, Marmaray, Metrobüs.
   mesafeye orantılı dağıtımı. Arayüzde `tahmini` etiketiyle gösterilir.
 
 ### Bekleme: iki farklı güven seviyesi
-- **M1A–M6** (GTFS tarifesi var): bekleme sıradaki kalkışa göre **dakikasıyla**.
+- **M1A–M6 ve Marmaray** (yayımlanmış tarife var): bekleme sıradaki kalkışa göre **dakikasıyla**.
   Aktarmalar fazlıdır — 5 dk erken çıkmak varış saatini hiç değiştirmeyebilir,
   1 dk geç kalmak bir sefer kaybettirebilir. Arayüzde "3 dk bekleme" yazar.
-- **M11, Marmaray, M7, M8, M9, Metrobüs** (kalkış dakikası yayımlanmıyor):
+- **M11, M7, M8, M9, Metrobüs** (kalkış dakikası yayımlanmıyor):
   bekleme **ortalama** (aralık ÷ 2). Arayüzde "~8 dk bekleme (ort.)" yazar.
 
 Bu ayrım bilinçlidir: sentetik bir tarifeden üretilen dakika, gerçek trenle
