@@ -69,6 +69,17 @@ ilk sefere kadar beklenir, aktarmada son sefer kaçırılırsa ertesi güne kaya
 kullanıcıya uyarı bandı gösterilir. M11/Marmaray'ın Cuma–Cumartesi gece ek
 seferleri modellenmez.
 
+### İstasyona iniş / çıkış payı
+Süreler **sokaktan sokağa**: kalkış istasyonunda peron seviyesine inme, varış
+istasyonunda sokağa çıkma payı dahil.
+
+    pay = 1 + kat × 1,0 dk        (yüzey 1 dk · 3 kat 4 dk · 5 kat 6 dk)
+
+Kat sayısı OpenStreetMap `level`/`layer` etiketlerinden, 265 istasyonun tamamı
+için tarandı (209'unda etiket bulundu; bulunmayanlar yüzey kabul edilir).
+Formül **saha ölçümüyle kalibre edildi**: Olimpiyatköy 3 kat, peronden sokağa
+4 dakika (16:33 iniş → 16:37 çıkış).
+
 ### Aktarma
 Aktarma noktaları istasyon koordinatlarından 400 m eşiğiyle bulundu (32 aktarma
 yeri). Aktarma süresi = **yürüme + bekleme**.
