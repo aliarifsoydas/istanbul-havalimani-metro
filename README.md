@@ -7,8 +7,10 @@ Google Maps'ten farkı: sadece raylı sistem + metrobüs (sade), buna karşılı
 İstanbulkart aktarma indirimi.
 
 Hatlar: **metro** M1A, M1B, M2, M3, M4, M5, M6, M7, M8, M9, M11 · **banliyö**
-Marmaray · **tramvay** T1, T3, T4, T5 · **füniküler/teleferik** F1, F4, TF1, TF2 ·
-**Metrobüs**.
+Marmaray · **tramvay** T1, T3, T4, T5 · **füniküler/teleferik** F1, F2 (Tünel), F4,
+TF1, TF2 · **Metrobüs**. Toplam 22 hat, 353 istasyon.
+
+F2 (Tünel) Metro İstanbul API'sinde yoktur çünkü İETT işletir; ayrıca eklendi.
 
 Durak seçimi **aranabilir**: yazmaya başlayınca filtrelenir. Arama yalnızca
 görünen adı değil, o aktarma noktasındaki tüm istasyon adlarını kapsar — ör.
@@ -60,6 +62,12 @@ görünen adı değil, o aktarma noktasındaki tüm istasyon adlarını kapsar �
   uzatıldı.
 - **M7, M8, M9, T3, T5, F4, TF1, TF2, Metrobüs** — istasyon bazlı tarife yok; süre hat toplamının
   mesafeye orantılı dağıtımı. Arayüzde `tahmini` etiketiyle gösterilir.
+
+### İki ayrı kalite göstergesi
+Bir bacağın **yolculuk süresi** ile **kalkış saati** ayrı ayrı değerlendirilir:
+- `tq` alanı süre kalitesini tutar. Gerçek tarifeden gelmeyen hatlarda bacakta
+  **"süre tahmini"** rozeti çıkar (şu an yalnızca M9, T3 ve Metrobüs).
+- Bekleme satırı ayrıca kaynağını yazar (gerçek tarife / ortalama).
 
 ### Sefer aralığının kaynağı
 Arayüzde ortalama bekleme gösterilen her bacakta aralığın **nereden geldiği** de
