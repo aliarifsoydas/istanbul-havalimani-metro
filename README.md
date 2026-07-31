@@ -71,9 +71,17 @@ yazar, çünkü hepsi aynı güvenilirlikte değil:
 | yayımlanmış tarife | Marmaray 15 (Ataköy–Pendik kesiminde ~7) | yayımlanmış |
 | İBB yayını | M8 7 | operatör beyanı |
 | yayımlanmış afiş | M11 15 | TCDD ilk/son tren afişi |
-| **VARSAYIM** | M7 6 · M9 6 · T3 10 · T5 6 · F4/TF1/TF2 6 · Metrobüs 2 | **veri yok** |
+| Moovit | F4 8 · TF1 10 · TF2 10 | üçüncü taraf, GTFS ile doğrulandı |
+| **VARSAYIM** | M7 6 · M9 6 · T3 10 · T5 6 · Metrobüs 2 | **veri yok** |
 
-**Not — Moovit güvenilir bulunmadı.** M11 için Moovit 12 dk aralık, 06:10 ilk
+**Moovit nerede kullanıldı, nerede kullanılmadı.** Moovit, GTFS'i olan hatlara
+karşı doğrulandı ve yolculuk süreleri tutarlı çıktı (M4 46 dk = GTFS 46 dk,
+M2 28 vs 29, M8 24 vs 26). Bu yüzden başka kaynağı olmayan **F4, TF1, TF2** için
+kalkış saatleri Moovit'ten alındı. M7, M9, T3 ve T5 için Moovit tarife
+yayımlamıyor (sayfalar boş dönüyor, M9 hat listesinde bile yok); Metro
+İstanbul'un kendi sitesinde de istasyon bazlı saat yok.
+
+**M11'de ise Moovit kullanılmadı.** M11 için Moovit 12 dk aralık, 06:10 ilk
 sefer ve Gayrettepe–Halkalı 58 dk veriyor; bunların üçü de TCDD afişiyle
 (15 dk, 05:55, 64 dk) ve saha ölçümüyle (Kargo→Olimpiyatköy 23 dk; Moovit 16 dk
 diyor) çelişiyor. Resmî afiş ve saha ölçümü esas alındı.
