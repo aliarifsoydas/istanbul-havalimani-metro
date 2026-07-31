@@ -969,6 +969,15 @@ ${CSS}
   .cempty{padding:14px; color:var(--faint); font-size:13.5px}
 
   .maprow{padding:0 22px 18px}
+  .mapmodes{display:none; gap:6px; margin-top:10px}
+  .mapmodes.on{display:flex}
+  .mapmodes button{font-size:12.5px; font-weight:600; color:var(--faint); background:var(--paper-2);
+    border:1.5px solid var(--edge); border-radius:999px; padding:6px 13px; cursor:pointer}
+  .mapmodes button.sel{color:#fff; background:var(--line); border-color:var(--line)}
+  .maplegend{display:none; flex-wrap:wrap; gap:5px; margin-top:8px}
+  .maplegend.on{display:flex}
+  .maplegend i{font-style:normal; font-family:"Martian Mono",ui-monospace,monospace; font-size:9.5px;
+    font-weight:700; color:#fff; background:var(--lc); border-radius:4px; padding:2px 5px}
   .mapbtn{display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:600;
     color:var(--line); background:var(--paper-2); border:1.5px solid var(--edge); border-radius:999px;
     padding:9px 16px; cursor:pointer; transition:background .15s, border-color .15s}
@@ -1040,8 +1049,13 @@ ${CSS}
     <div id="warn"></div>
     <div class="opts" id="opts"></div>
     <div class="maprow">
-      <button class="mapbtn" id="mapbtn" type="button">🗺️ Rotayı haritada göster</button>
+      <button class="mapbtn" id="mapbtn" type="button">🗺️ Haritayı aç</button>
+      <div class="mapmodes" id="mapmodes">
+        <button type="button" data-mode="route" class="sel">Bu rota</button>
+        <button type="button" data-mode="net">Tüm ağ</button>
+      </div>
       <div id="map"></div>
+      <div class="maplegend" id="maplegend"></div>
       <p class="mapnote" id="mapnote"></p>
     </div>
     <p class="note" id="note"></p>
@@ -1432,11 +1446,38 @@ ${CSS}
     js.onerror = function(){ $("mapnote").textContent = "Harita yüklenemedi (ağ engeli olabilir). Hesaplama etkilenmez."; };
     document.head.appendChild(js);
   }
+  var mapMode = "route";
+  // Tüm ağ: 21 hattın tamamı kendi renginde + 351 istasyon.
+  function drawNetwork(LF){
+    var all = [];
+    Object.keys(L).forEach(function(ln){
+      var N = L[ln];
+      LF.polyline(N.p, { color: N.c, weight: 4, opacity: .8 }).addTo(layer);
+      all = all.concat(N.p);
+    });
+    // aktarma noktaları büyük, diğerleri küçük
+    var isX = {};
+    X.forEach(function(x){ isX[x[0] + ":" + x[1]] = 1; isX[x[2] + ":" + x[3]] = 1; });
+    Object.keys(L).forEach(function(ln){
+      var N = L[ln];
+      N.p.forEach(function(pt, i) {
+        var big = isX[ln + ":" + i];
+        LF.circleMarker(pt, { radius: big ? 5 : 2.5, color: N.c, weight: big ? 2.5 : 1.5,
+          fillColor: "#fff", fillOpacity: 1 }).addTo(layer)
+          .bindPopup("<b>" + N.n[i] + "</b><br>" + ln + (big ? " · aktarma" : ""));
+      });
+    });
+    if(all.length) map.fitBounds(LF.latLngBounds(all).pad(0.04));
+    $("mapnote").innerHTML = "21 hat · 351 istasyon · 72 aktarma noktası (büyük halkalar). " +
+      'Karolar © <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap</a> katkıcıları.';
+  }
+
   function drawMap(){
     // DİKKAT: yerel "L" hat verisidir; Leaflet global L'yi gölgeler.
     // Leaflet'e her zaman window.L üzerinden erişilir.
     var LF = window.L;
-    if(!mapReady || !lastPlan || !LF || !LF.map) return;
+    if(!mapReady || !LF || !LF.map) return;
+    if(mapMode === "route" && !lastPlan) return;
     if(!map){
       map = LF.map("map", { scrollWheelZoom: false });
       LF.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -1445,6 +1486,7 @@ ${CSS}
     }
     if(layer) map.removeLayer(layer);
     layer = LF.layerGroup().addTo(map);
+    if(mapMode === "net"){ drawNetwork(LF); return; }
     var all = [];
     lastPlan.legs.forEach(function(g){
       var N = L[g.ln], lo = Math.min(g.iIdx, g.jIdx), hi = Math.max(g.iIdx, g.jIdx);
@@ -1485,12 +1527,35 @@ ${CSS}
     if(card){ e.preventDefault(); selectOpt(+card.getAttribute("data-opt")); }
   });
 
+  $("mapmodes").addEventListener("click", function(e){
+    var btn = e.target.closest ? e.target.closest("button[data-mode]") : null;
+    if(!btn) return;
+    mapMode = btn.getAttribute("data-mode");
+    var bs = $("mapmodes").getElementsByTagName("button");
+    for(var i=0;i<bs.length;i++) bs[i].classList.toggle("sel", bs[i] === btn);
+    $("maplegend").classList.toggle("on", mapMode === "net");
+    if(mapReady) drawMap();
+  });
+  $("maplegend").innerHTML = Object.keys(L).map(function(ln){
+    return '<i style="--lc:' + L[ln].c + '">' + ln + '</i>';
+  }).join("");
+
   $("mapbtn").addEventListener("click", function(){
     var el = $("map");
-    if(mapReady){ el.classList.toggle("on"); this.textContent = el.classList.contains("on") ? "🗺️ Haritayı gizle" : "🗺️ Rotayı haritada göster"; if(el.classList.contains("on")) setTimeout(function(){ map && map.invalidateSize(); drawMap(); }, 60); return; }
+    if(mapReady){
+      el.classList.toggle("on");
+      var on = el.classList.contains("on");
+      this.textContent = on ? "🗺️ Haritayı gizle" : "🗺️ Haritayı aç";
+      $("mapmodes").classList.toggle("on", on);
+      $("maplegend").classList.toggle("on", on && mapMode === "net");
+      if(on) setTimeout(function(){ map && map.invalidateSize(); drawMap(); }, 60);
+      return;
+    }
     var btn = this; btn.textContent = "Harita yükleniyor…";
     loadLeaflet(function(){
       mapReady = true; el.classList.add("on"); btn.textContent = "🗺️ Haritayı gizle";
+      $("mapmodes").classList.add("on");
+      $("maplegend").classList.toggle("on", mapMode === "net");
       drawMap();
     });
   });

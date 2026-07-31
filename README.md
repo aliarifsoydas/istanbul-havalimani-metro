@@ -124,7 +124,10 @@ Bu ayrım bilinçlidir: sentetik bir tarifeden üretilen dakika, gerçek trenle
 birkaç dakika kayabilir ve sahte hassasiyet yaratır.
 
 ### Harita
-Rota isteğe bağlı olarak OpenStreetMap üzerinde çizilir (Leaflet). Harita
+İki mod var: **Bu rota** (seçili seçeneğin bacakları) ve **Tüm ağ** (21 hattın
+tamamı kendi renginde, 351 istasyon; aktarma noktaları büyük halkayla, hat
+renklerinin göstergesiyle). Rota isteğe bağlı olarak OpenStreetMap üzerinde
+çizilir (Leaflet). Harita
 kütüphanesi ve karolar **sayfa açılışında yüklenmez** — yalnızca kullanıcı
 "Haritada göster" düğmesine bastığında istenir, böylece sayfa bağımlılıksız
 ve hızlı kalır. Çizgiler istasyon koordinatlarını birleştirir; gerçek hat
