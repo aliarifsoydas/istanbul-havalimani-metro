@@ -57,6 +57,13 @@ Yürüme yatay ve dikey bileşenden oluşur:
     kat_süresi = 0,8 dk (yürüyen merdiven varsa) · 1,3 dk (yoksa)
     taban      = 3 dk (2+ kat) · 2 dk (yüzey)
 
+- **yatay_metre**: OpenStreetMap **yaya rotalamasıyla** hesaplanan gerçek yürüyüş
+  mesafesi (OSRM foot profili). Kuş uçuşu kullanılmaz: ortalama dolambaç katsayısı
+  **2,84×** çıktı. Örnek — Küçükçekmece Metrobüs ↔ Marmaray: kuş uçuşu 372 m,
+  gerçek yürüyüş **694 m** (D-100 üstgeçitten aşılıyor).
+  İstisna: aynı adı taşıyan raylı istasyonlar tek kompleks sayılır ve yeraltı
+  bağlantısı kullanıldığı için doğrudan mesafe alınır (yüzey rotalaması oraları
+  gereksiz uzun gösteriyordu — M2↔M11 Gayrettepe 273 m yerine 556 m gibi).
 - **kat_sayısı**: OpenStreetMap'teki `level`/`layer` etiketlerinden (32 aktarmanın
   28'inde mevcut; peron, merdiven ve asansör nesneleri taranır).
 - **yürüyen merdiven**: OSM `conveying=yes` merdivenleri veya İBB API'sindeki
