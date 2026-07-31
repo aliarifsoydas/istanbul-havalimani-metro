@@ -13,20 +13,26 @@ Hatlar: M1A, M1B, M2, M3, M4, M5, M6, M7, M8, M9, M11, Marmaray, Metrobüs.
   kalkış saatleri (hafta içi, ~150–290 sefer/yön) ve istasyonlar arası gerçek
   süreler. GTFS Ocak 2023 tarihli; sonradan uzayan kesimler (M3, M4, M5 uçları)
   hattın kendi gerçek hızıyla ekstrapole edildi.
-- **M11 ve Marmaray** — TCDD tarifesi; süreler son tren geçişlerinden, kalkışlar
-  gerçek ilk/son sefer saatine demirlenmiş 15 dk'lık sabit aralıktan.
+- **M11 ve Marmaray** — yolculuk süreleri TCDD tarifesinden (son tren geçişleri),
+  güvenilir. **Kalkış dakikaları YOK**: bu iki hat için istasyon bazlı kalkış
+  saati yayımlanmıyor, kaynaklar da çelişiyor (bir kaynak Gayrettepe ilk sefer
+  05:55 / 15 dk aralık, bir başkası 06:10 / 20 dk diyor). Bu yüzden bekleme
+  ortalama (aralık ÷ 2) olarak verilir; sıradaki trenin dakikası iddia edilmez.
 - **M5 uzantısı** (Veysel Karani, Hasanpaşa, Sultanbeyli) — İBB API'sinde
   koordinatsızdı, OSM'den alındı; süreler hattın kendi gerçek hızıyla (37 km/s)
   uzatıldı.
 - **M7, M8, M9, Metrobüs** — istasyon bazlı tarife bulunamadı; süre hat toplamının
   mesafeye orantılı dağıtımı. Arayüzde `tahmini` etiketiyle gösterilir.
 
-### Bekleme fazlıdır, ortalama değil
-Gerçek tarifesi olan hatlarda bekleme, **sıradaki kalkışa göre dakikasıyla**
-hesaplanır. Bu önemlidir: aktarmalar fazlıdır — M11 Halkalı'ya 14:44'te varıp
-Marmaray 14:58'de kalktığı için bekleme her seferinde ~11 dk çıkar, "aralık/2"
-formülünün söylediği 8 dk değil. Aynı sebeple 5 dk erken çıkmak varış saatini
-hiç değiştirmeyebilir, 1 dk geç kalmak 15 dk kaybettirebilir.
+### Bekleme: iki farklı güven seviyesi
+- **M1A–M6** (GTFS tarifesi var): bekleme sıradaki kalkışa göre **dakikasıyla**.
+  Aktarmalar fazlıdır — 5 dk erken çıkmak varış saatini hiç değiştirmeyebilir,
+  1 dk geç kalmak bir sefer kaybettirebilir. Arayüzde "3 dk bekleme" yazar.
+- **M11, Marmaray, M7, M8, M9, Metrobüs** (kalkış dakikası yayımlanmıyor):
+  bekleme **ortalama** (aralık ÷ 2). Arayüzde "~8 dk bekleme (ort.)" yazar.
+
+Bu ayrım bilinçlidir: sentetik bir tarifeden üretilen dakika, gerçek trenle
+birkaç dakika kayabilir ve sahte hassasiyet yaratır.
 
 ### Harita
 Rota isteğe bağlı olarak OpenStreetMap üzerinde çizilir (Leaflet). Harita
