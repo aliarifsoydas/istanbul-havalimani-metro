@@ -66,7 +66,9 @@ görünen adı değil, o aktarma noktasındaki tüm istasyon adlarını kapsar �
 ### İki ayrı kalite göstergesi
 Bir bacağın **yolculuk süresi** ile **kalkış saati** ayrı ayrı değerlendirilir:
 - `tq` alanı süre kalitesini tutar. Gerçek tarifeden gelmeyen hatlarda bacakta
-  **"süre tahmini"** rozeti çıkar (şu an yalnızca M9, T3 ve Metrobüs).
+  **"süre tahmini"** rozeti çıkar. Şu an yalnızca **M9** (GTFS'te 14 durağın
+  5'i var, gerisi o hattın kendi ölçülen hızıyla —2,5 dk/durak— uzatıldı) ve
+  **Metrobüs** (hiçbir kaynakta tarife yok).
 - Bekleme satırı ayrıca kaynağını yazar (gerçek tarife / ortalama).
 
 ### Sefer aralığının kaynağı
