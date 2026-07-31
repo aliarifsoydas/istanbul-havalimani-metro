@@ -71,8 +71,8 @@ yazar, çünkü hepsi aynı güvenilirlikte değil:
 | yayımlanmış tarife | Marmaray 15 (Ataköy–Pendik kesiminde ~7) | yayımlanmış |
 | İBB yayını | M8 7 | operatör beyanı |
 | yayımlanmış afiş | M11 15 | TCDD ilk/son tren afişi |
-| Moovit | M7 5 · M8 10 · M9 10 · F4 8 · TF1 10 · TF2 10 | üçüncü taraf, GTFS ile doğrulandı |
-| **VARSAYIM** | T3 10 · T5 6 · Metrobüs 2 | **veri yok** |
+| Moovit | M7 5 · M8 10 · M9 10 · T3 10 · T5 12 · F4 8 · TF1 10 · TF2 10 | üçüncü taraf, GTFS ile doğrulandı |
+| **VARSAYIM** | Metrobüs 2 | **veri yok** |
 
 **Moovit nerede kullanıldı, nerede kullanılmadı.** Moovit, GTFS'i olan hatlara
 karşı doğrulandı ve yolculuk süreleri tutarlı çıktı (M4 46 dk = GTFS 46 dk,
@@ -94,7 +94,16 @@ yolculuk süreleri kendi verimizden.
 15'i Mecidiyeköy kesiminde olduğu için o liste esas alındı; Yıldız ve Fulya'da
 gerçek sıklık daha düşüktür.
 
-T3, T5 ve Metrobüs için tarife bulunamadı.
+T3 ve T5 için de Moovit'ten alındı (Türkçe adres şart — İngilizce sayfa
+12 saat biçimi kullandığı için boş dönüyor).
+
+**Moovit'in istasyon süreleri hatta göre değişiyor, her biri ayrı denetlendi:**
+T5'te ofsetler düzensiz (0, 2, 4, 6, 8, 11, 13, 16, 20, 23, 25, 28, 32, 36) —
+gerçek veri, alındı ve T5'in süresi 18 → **36 dk** düzeltildi (mesafeye dayalı
+tahminimiz çok kısaymış). T3'te ise 10 durak 4 dakikaya sıkışmış, açıkça bozuk;
+yalnızca kalkışlar alındı, süre yayımlanmış 20 dk'da bırakıldı.
+
+Yalnızca **Metrobüs** için tarife bulunamadı.
 
 **M11'de ise Moovit kullanılmadı.** M11 için Moovit 12 dk aralık, 06:10 ilk
 sefer ve Gayrettepe–Halkalı 58 dk veriyor; bunların üçü de TCDD afişiyle
