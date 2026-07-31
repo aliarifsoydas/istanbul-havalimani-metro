@@ -26,9 +26,20 @@ Hatlar: M1A, M1B, M2, M3, M4, M5, M6, M7, M8, M9, M11, Marmaray, Metrobüs.
 
   Kısa servis (Ataköy–Pendik) yalnızca **hem kalkış hem varış** bu aralıktaysa
   sayılır; değilse Pendik'te inersiniz, o yüzden 15 dk uygulanır.
-- **M11** — yolculuk süreleri TCDD tarifesinden, güvenilir. **Kalkış dakikası
-  YOK**: kaynaklar çelişiyor (bir kaynak ilk sefer 05:55 / 15 dk, bir başkası
-  06:10 / 20 dk diyor). Bekleme ortalama (aralık ÷ 2) verilir.
+- **M11** — yolculuk süreleri TCDD tarifesinden ve **saha gözlemiyle doğrulandı**
+  (Kargo Terminali → Olimpiyatköy: hesap 23 dk, gözlem 23 dk). İstasyon bazlı
+  ilk tren saatleri de doğrulandı (Olimpiyatköy, Gayrettepe yönü: veri 06:07,
+  gözlem 06:07).
+
+  **Kalkış dakikası yine de verilemiyor**: sefer aralığı gün içinde değişiyor.
+  Sabah gözlemi 16 dk (Olimpiyatköy 06:07 → 06:23), ama 16:10'da geçen tren
+  sabah anchor'undan hiçbir sabit aralıkla türetilemiyor (596 dk fark; 15'te
+  39,7 · 16'da 37,25 · 20'de 29,8 sefer — hiçbiri tam sayı). Tek bir sabah
+  anchor'undan gün ortasını hesaplamak bu yüzden mümkün değil; bekleme ortalama
+  (aralık ÷ 2) verilir ve arayüzde aralık da yazılır.
+
+  Bunu çözmek için gereken: **aynı istasyonda, aynı yönde, gün ortasında ardışık
+  iki trenin geçiş saati.** O iki sayı gündüz aralığını ve fazını verir.
 - **M5 uzantısı** (Veysel Karani, Hasanpaşa, Sultanbeyli) — İBB API'sinde
   koordinatsızdı, OSM'den alındı; süreler hattın kendi gerçek hızıyla (37 km/s)
   uzatıldı.
