@@ -52,6 +52,21 @@ görünen adı değil, o aktarma noktasındaki tüm istasyon adlarını kapsar �
 - **M7, M8, M9, T3, T5, F4, TF1, TF2, Metrobüs** — istasyon bazlı tarife yok; süre hat toplamının
   mesafeye orantılı dağıtımı. Arayüzde `tahmini` etiketiyle gösterilir.
 
+### Sefer aralığının kaynağı
+Arayüzde ortalama bekleme gösterilen her bacakta aralığın **nereden geldiği** de
+yazar, çünkü hepsi aynı güvenilirlikte değil:
+
+| Kaynak | Hatlar | Aralık |
+|---|---|---|
+| gerçek tarife (GTFS'ten ölçüldü) | M1A 6 · M1B 6 · M2 3 · M3 8 · M4 5 · M5 8 · M6 9 · T1 5 · T4 5 · F1 5 | ölçülmüş |
+| yayımlanmış tarife | Marmaray 15 (Ataköy–Pendik kesiminde ~7) | yayımlanmış |
+| İBB yayını | M8 7 | operatör beyanı |
+| saha gözlemi | M11 16 (Olimpiyatköy 06:07 → 06:23) | tek gözlem |
+| **VARSAYIM** | M7 6 · M9 6 · T3 10 · T5 6 · F4/TF1/TF2 6 · Metrobüs 2 | **veri yok** |
+
+Son satırdaki hatlar için hiçbir kaynakta gündüz sefer aralığı bulunamadı;
+yalnızca hafta sonu gece seferi (30 dk) yayımlanıyor.
+
 ### Bekleme: iki farklı güven seviyesi
 - **M1A–M6 ve Marmaray** (yayımlanmış tarife var): bekleme sıradaki kalkışa göre **dakikasıyla**.
   Aktarmalar fazlıdır — 5 dk erken çıkmak varış saatini hiç değiştirmeyebilir,
