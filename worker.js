@@ -899,16 +899,23 @@ return `<!DOCTYPE html>
 <script type="application/ld+json">${JSON.stringify(appJsonLd)}</script>
 ${CSS}
 <style>
-  .plan{display:grid; grid-template-columns:1fr 1fr auto; gap:10px; align-items:end; padding:22px 22px 18px}
+  /* Yön değiştir düğmesi A ve B'nin ARASINDA durur; kendi satırında ortada
+     dururken neyi neyle değiştirdiği anlaşılmıyordu. */
+  .plan{display:grid; grid-template-columns:1fr auto 1fr auto; gap:10px 12px; align-items:end; padding:22px 22px 18px}
   .plan .field.when{min-width:132px}
   .plan input[type=time]{width:100%; height:52px; padding:0 13px; font-size:16px; font-weight:600; font-family:inherit;
     color:var(--ink); background:var(--paper-2); border:1.5px solid var(--edge); border-radius:14px}
   .plan input[type=time]:focus{outline:none; border-color:var(--line); box-shadow:0 0 0 4px var(--ring)}
   .nowbtn{margin-left:8px; font-size:11px; font-weight:700; letter-spacing:.6px; text-transform:uppercase;
     color:var(--line); background:none; border:none; cursor:pointer; padding:0}
-  .swaprow{display:flex; justify-content:center; padding:0 22px 6px}
-  .swaprow button{width:40px; height:40px; border-radius:50%; border:1.5px solid var(--edge);
-    background:var(--paper-2); color:var(--line); cursor:pointer; display:flex; align-items:center; justify-content:center}
+  .swapbtn{align-self:end; width:46px; height:52px; flex:none; border:1.5px solid var(--edge);
+    background:var(--paper-2); color:var(--line); border-radius:14px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:background .15s, border-color .15s, transform .3s cubic-bezier(.34,1.56,.64,1)}
+  .swapbtn:hover{background:var(--line-soft); border-color:var(--line)}
+  .swapbtn:active{transform:rotate(180deg) scale(.92)}
+  /* Yan yana dizilimde oklar yatay okunmalı — KUTU değil, yalnızca ikon döner. */
+  .swapbtn svg{transform:rotate(90deg)}
   .opts{padding:0 22px 22px; display:flex; flex-direction:column; gap:12px}
   .opt{border:1.5px solid var(--edge); border-radius:16px; overflow:hidden; background:var(--paper-2)}
   .opt{cursor:pointer}
@@ -975,9 +982,18 @@ ${CSS}
   .lchips{display:flex; flex-wrap:wrap; gap:6px; margin-top:14px}
   .lchip{font-family:"Martian Mono",ui-monospace,monospace; font-size:10.5px; font-weight:700; color:#fff;
     background:var(--lc); border-radius:5px; padding:3px 7px}
+  @media (max-width:900px){
+    .plan{grid-template-columns:1fr auto 1fr}
+    .plan .field.when{grid-column:1 / -1}
+  }
   @media (max-width:560px){
-    .plan{grid-template-columns:1fr; gap:12px}
-    .plan .field.when{min-width:0}
+    .plan{grid-template-columns:1fr; gap:10px}
+    .plan .field.when{min-width:0; grid-column:auto; order:4}
+    .plan .field.from{order:1}
+    .swapbtn{order:2; justify-self:end; width:40px; height:40px; border-radius:50%; margin:-3px 2px}
+    .plan .field.to{order:3}
+    /* Alt alta dizilimde yukarı/aşağı oklar doğru okunur; ikon döndürülmez. */
+    .swapbtn svg{transform:none}
   }
 </style>
 </head>
@@ -1004,6 +1020,9 @@ ${CSS}
           <button class="cclear" type="button" aria-label="Temizle">×</button>
           <div class="clist" id="lfrom"></div></div>
       </div>
+      <button id="swap" class="swapbtn" type="button" aria-label="Kalkış ve varışı değiştir" title="Kalkış ve varışı değiştir">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 4l-3 3M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3"/></svg>
+      </button>
       <div class="field to">
         <label for="to"><b>B</b> Nereye</label>
         <div class="combo" id="cto"><select id="to">${placeOpts(iUsk)}</select>
@@ -1015,11 +1034,6 @@ ${CSS}
         <label for="when">Kalkış<button type="button" class="nowbtn" id="nowbtn">şimdi</button></label>
         <input type="time" id="when" value="08:30">
       </div>
-    </div>
-    <div class="swaprow">
-      <button id="swap" type="button" aria-label="Yönü değiştir" title="Yönü değiştir">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 4l-3 3M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3"/></svg>
-      </button>
     </div>
     <div id="warn"></div>
     <div class="opts" id="opts"></div>
