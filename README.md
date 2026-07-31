@@ -32,7 +32,16 @@ görünen adı değil, o aktarma noktasındaki tüm istasyon adlarını kapsar �
 
   Kısa servis (Ataköy–Pendik) yalnızca **hem kalkış hem varış** bu aralıktaysa
   sayılır; değilse Pendik'te inersiniz, o yüzden 15 dk uygulanır.
-- **M11** — yolculuk süreleri TCDD tarifesinden ve **saha gözlemiyle doğrulandı**
+- **M11** — **kalkışlar TCDD'nin resmî ilk/son tren afişinden**: her istasyonun
+  kendi ilk tren saati + 15 dk aralık. Aralığın 15 olduğu afişe karşı doğrulandı —
+  30 istasyon/yön kombinasyonunun tamamında (son tren − ilk tren) 15'in katına
+  ±1 dk içinde düşüyor (yayımlanan saatler dakikaya yuvarlı).
+
+  Her istasyonun ilk treni farklıdır (Gayrettepe 05:55 · Göktürk 05:57 ·
+  Kargo Terminali 06:14 · Kayaşehir 06:03) çünkü seferler yalnızca uçlardan
+  başlamaz; faz istasyondan istasyona değişir.
+
+  Yolculuk süreleri TCDD tarifesinden ve **saha gözlemiyle doğrulandı**
   (Kargo Terminali → Olimpiyatköy: hesap 23 dk, gözlem 23 dk). İstasyon bazlı
   ilk tren saatleri de doğrulandı (Olimpiyatköy, Gayrettepe yönü: veri 06:07,
   gözlem 06:07).
@@ -61,8 +70,13 @@ yazar, çünkü hepsi aynı güvenilirlikte değil:
 | gerçek tarife (GTFS'ten ölçüldü) | M1A 6 · M1B 6 · M2 3 · M3 8 · M4 5 · M5 8 · M6 9 · T1 5 · T4 5 · F1 5 | ölçülmüş |
 | yayımlanmış tarife | Marmaray 15 (Ataköy–Pendik kesiminde ~7) | yayımlanmış |
 | İBB yayını | M8 7 | operatör beyanı |
-| saha gözlemi | M11 16 (Olimpiyatköy 06:07 → 06:23) | tek gözlem |
+| yayımlanmış afiş | M11 15 | TCDD ilk/son tren afişi |
 | **VARSAYIM** | M7 6 · M9 6 · T3 10 · T5 6 · F4/TF1/TF2 6 · Metrobüs 2 | **veri yok** |
+
+**Not — Moovit güvenilir bulunmadı.** M11 için Moovit 12 dk aralık, 06:10 ilk
+sefer ve Gayrettepe–Halkalı 58 dk veriyor; bunların üçü de TCDD afişiyle
+(15 dk, 05:55, 64 dk) ve saha ölçümüyle (Kargo→Olimpiyatköy 23 dk; Moovit 16 dk
+diyor) çelişiyor. Resmî afiş ve saha ölçümü esas alındı.
 
 Son satırdaki hatlar için hiçbir kaynakta gündüz sefer aralığı bulunamadı;
 yalnızca hafta sonu gece seferi (30 dk) yayımlanıyor.
