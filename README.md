@@ -162,14 +162,23 @@ ilk sefere kadar beklenir, aktarmada son sefer kaçırılırsa ertesi güne kaya
 kullanıcıya uyarı bandı gösterilir. M11/Marmaray'ın Cuma–Cumartesi gece ek
 seferleri modellenmez.
 
+### Ücret istisnası
+İkitelli Sanayi'de **M3 ↔ M9 arasında ücretsiz aktarma** uygulanır (Metro
+İstanbul; M9 başlangıçta M3'ün şube hattıydı). Modelde bu geçişin ikinci
+bacağı 0 TL sayılır ve arayüzde "ücretsiz aktarma" yazar.
+
 ### İstasyona iniş / çıkış payı
 Süreler **sokaktan sokağa**: kalkış istasyonunda peron seviyesine inme, varış
 istasyonunda sokağa çıkma payı dahil.
 
     pay = 1 + kat × 1,0 dk        (yüzey 1 dk · 3 kat 4 dk · 5 kat 6 dk)
 
-Kat sayısı OpenStreetMap `level`/`layer` etiketlerinden, 265 istasyonun tamamı
-için tarandı (209'unda etiket bulundu; bulunmayanlar yüzey kabul edilir).
+Kat sayısı OpenStreetMap `level`/`layer` etiketlerinden, tüm istasyonlar için
+tarandı (209'unda etiket bulundu; bulunmayanlar yüzey kabul edilir).
+
+**M9'da metre cinsinden gerçek derinlik var** (Vikipedi istasyon tablosu):
+16 m'den 38 m'ye. O hatta pay `1 + derinlik × 0,19` ile hesaplanır — katsayı
+yine Olimpiyat ölçümüne oturtulmuştur (16 m → 4 dk). Mimar Sinan 38 m → 8 dk.
 Formül **saha ölçümüyle kalibre edildi**: Olimpiyatköy 3 kat, peronden sokağa
 4 dakika (16:33 iniş → 16:37 çıkış).
 
